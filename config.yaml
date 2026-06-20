@@ -1,0 +1,34 @@
+# Configuration for the TCGA lung-cancer analysis.
+# Edit the study/profile IDs to target a different cohort or data release.
+
+cbioportal:
+  base_url: "https://www.cbioportal.org/api"
+  timeout: 60          # seconds per HTTP request
+  page_size: 10000     # pagination size for list endpoints
+
+# TCGA lung studies on cBioPortal (PanCancer Atlas).
+studies:
+  luad: "luad_tcga_pan_can_atlas_2018"
+  lusc: "lusc_tcga_pan_can_atlas_2018"
+
+# Molecular profile + sample-list suffixes are appended to each study id, e.g.
+#   "luad_tcga_pan_can_atlas_2018_rna_seq_v2_mrna"
+# Discover the exact ids available for a study with:
+#   client.get_molecular_profiles(study_id) / client.get_sample_lists(study_id)
+profiles:
+  mrna_suffix: "_rna_seq_v2_mrna"          # mRNA expression (RSEM)
+  mutation_suffix: "_mutations"            # mutation calls
+  # NOTE: miRNA expression is NOT available for most PanCancer studies on
+  # cBioPortal. For miRNA use a Firehose-legacy study that has it, or switch
+  # the data layer to UCSC Xena / GDC. Left here for when a profile exists.
+  mirna_suffix: "_mirna"
+
+sample_lists:
+  all_suffix: "_all"                       # every sample in the study
+
+analysis:
+  mutation_gene: "TP53"                    # gene for mutant-vs-wildtype split
+  # Threshold grid for the nearest-shrunken-centroid (PAM) model.
+  pam_thresholds: null                     # null => auto grid from data
+  cv_folds: 5
+  random_state: 42

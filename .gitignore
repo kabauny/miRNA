@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Project data + outputs (do not commit large/derived data)
+data/
+results/
+*.csv
+*.tsv
+*.parquet
+!config.yaml
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
