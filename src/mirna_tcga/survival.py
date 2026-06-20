@@ -50,7 +50,7 @@ def logrank_by_group(
     event_col: str = "event",
 ):
     """Multivariate log-rank test comparing survival across ``group_col``."""
-    lifelines = _require_lifelines()
+    _require_lifelines()
     from lifelines.statistics import multivariate_logrank_test
 
     return multivariate_logrank_test(

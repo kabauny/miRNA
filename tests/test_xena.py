@@ -2,8 +2,6 @@
 
 import gzip
 
-import pandas as pd
-
 from mirna_tcga.xena import HOSTS, XenaClient
 
 EXPR_TSV = (

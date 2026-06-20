@@ -1,7 +1,5 @@
 """Offline tests for the cBioPortal client using a fake HTTP session."""
 
-import pandas as pd
-
 from mirna_tcga.cbioportal import CBioPortalClient
 
 
