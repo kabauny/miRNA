@@ -12,7 +12,8 @@ centroids**, a.k.a. PAM) is preserved, now via scikit-learn.
 
 | Concern | Old (R) | New (Python) |
 |---|---|---|
-| Data access | manual `MANIFEST.txt` parsing of local files | **cBioPortal REST API** (`mirna_tcga.cbioportal`) |
+| Data access (mRNA/mutations) | manual `MANIFEST.txt` parsing of local files | **cBioPortal REST API** (`mirna_tcga.cbioportal`) |
+| Data access (miRNA) | local files | **UCSC Xena** TCGA hub (`mirna_tcga.xena`) |
 | Classification | `pamr` | `sklearn.neighbors.NearestCentroid` + CV threshold |
 | ID conversion | `biomaRt` | `mygene` / `pybiomart` (`mirna_tcga.idmap`) |
 | Normalization | `MASS::boxcox`, custom NZV | `scipy.stats.boxcox`, vectorized filters |
@@ -24,16 +25,18 @@ centroids**, a.k.a. PAM) is preserved, now via scikit-learn.
 ```
 src/mirna_tcga/      # the package
   config.py          # load config.yaml
-  cbioportal.py      # REST API client (expression, mutations, clinical)
+  cbioportal.py      # cBioPortal REST client (mRNA expression, mutations, clinical)
+  xena.py            # UCSC Xena loader (TCGA miRNA expression matrices)
   preprocess.py      # variance filter, Box-Cox, standardize
   classify.py        # PAM (nearest shrunken centroids) + CV + signature
   idmap.py           # gene/miRNA id conversion (optional deps)
   survival.py        # Kaplan-Meier / Cox PH (optional deps)
   panels.py          # small demo gene panel
 scripts/             # runnable pipeline examples
-  02_subtype_signature.py   # LUAD vs LUSC signature
-  03_mutation_analysis.py   # TP53-mutant vs wild-type signature
-  04_survival.py            # overall survival by stage
+  01_mirna_subtype_signature.py  # LUAD vs LUSC miRNA signature (Xena)
+  02_subtype_signature.py        # LUAD vs LUSC mRNA signature (cBioPortal)
+  03_mutation_analysis.py        # TP53-mutant vs wild-type signature
+  04_survival.py                 # overall survival by stage
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
@@ -51,7 +54,8 @@ pip install -e '.[dev]'       # + pytest / ruff
 ## Usage
 
 ```bash
-python scripts/02_subtype_signature.py            # LUAD vs LUSC
+python scripts/01_mirna_subtype_signature.py      # LUAD vs LUSC (miRNA, Xena)
+python scripts/02_subtype_signature.py            # LUAD vs LUSC (mRNA, cBioPortal)
 python scripts/03_mutation_analysis.py --gene TP53 --study luad
 python scripts/04_survival.py --study luad        # needs [survival] extra
 ```
@@ -85,17 +89,23 @@ runs without internet access.
 
 ## Network access note
 
-The pipeline calls `https://www.cbioportal.org/api`. In a sandboxed/remote
-environment you may need to **add `www.cbioportal.org` to the network egress
-allowlist** — otherwise requests return `403 Host not in allowlist`. See
+The pipeline calls external hosts: `https://www.cbioportal.org/api` (mRNA,
+mutations, clinical) and `https://*.xenahubs.net` (miRNA). In a sandboxed/remote
+environment you may need to **add these hosts to the network egress allowlist**
+— otherwise requests return `403 Host not in allowlist`. See
 https://code.claude.com/docs/en/claude-code-on-the-web.
+
+## Data sources
+
+- **mRNA / mutations / clinical** → cBioPortal (`mirna_tcga.cbioportal`).
+- **miRNA expression** → UCSC Xena TCGA hub (`mirna_tcga.xena`), because
+  cBioPortal does not carry miRNA for the PanCancer Atlas studies. Both Xena
+  hubs used here (`tcga`, `gdc`) serve genuine TCGA data.
 
 ## Caveats
 
-- **miRNA expression** is not available for most cBioPortal PanCancer studies;
-  those studies cover mRNA, mutations, CNA, and clinical data. For miRNA-level
-  analysis, point the data layer at a Firehose-legacy study that has a miRNA
-  profile, or swap in UCSC Xena / the GDC API.
-- Molecular-profile and sample-list IDs vary by data release; discover the
-  exact IDs with `client.get_molecular_profiles(study_id)` and
-  `client.get_sample_lists(study_id)`.
+- Xena miRNA matrices (`miRNA_HiSeq_gene`) are already log2-normalized, so the
+  miRNA script skips Box-Cox and goes straight to NZV filter + standardize.
+- cBioPortal molecular-profile and sample-list IDs vary by data release;
+  discover the exact IDs with `client.get_molecular_profiles(study_id)` and
+  `client.get_sample_lists(study_id)`. Xena dataset ids likewise vary by hub.

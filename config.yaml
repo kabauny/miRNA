@@ -6,6 +6,17 @@ cbioportal:
   timeout: 60          # seconds per HTTP request
   page_size: 10000     # pagination size for list endpoints
 
+# UCSC Xena hosts TCGA miRNA expression (cBioPortal does not for PanCancer).
+# host keys: tcga / gdc / pancanatlas (see mirna_tcga.xena.HOSTS)
+xena:
+  host: "tcga"
+  timeout: 120
+
+# TCGA miRNA mature-strand expression datasets on the Xena 'tcga' hub.
+xena_mirna:
+  luad: "TCGA.LUAD.sampleMap/miRNA_HiSeq_gene"
+  lusc: "TCGA.LUSC.sampleMap/miRNA_HiSeq_gene"
+
 # TCGA lung studies on cBioPortal (PanCancer Atlas).
 studies:
   luad: "luad_tcga_pan_can_atlas_2018"
