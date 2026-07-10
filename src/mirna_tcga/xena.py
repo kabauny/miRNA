@@ -58,9 +58,17 @@ class XenaClient:
 
     # -- raw fetch ---------------------------------------------------------
     def _fetch_raw(self, dataset: str) -> str:
-        """Download a dataset and return its decoded text (handles gzip)."""
-        url = f"https://{self.host}/download/{dataset}"
-        resp = self.session.get(url, timeout=self.timeout)
+        """Download a dataset and return its decoded text (handles gzip).
+
+        Xena stores matrices gzipped, served at ``<dataset>.gz``; the bare key
+        does not exist (S3 answers ``AccessDenied``). We therefore request the
+        ``.gz`` object first and fall back to the plain key for any dataset that
+        happens to be stored uncompressed.
+        """
+        base = f"https://{self.host}/download/{dataset}"
+        resp = self.session.get(base + ".gz", timeout=self.timeout)
+        if resp.status_code != 200:
+            resp = self.session.get(base, timeout=self.timeout)
         resp.raise_for_status()
         content = resp.content
         if content[:2] == b"\x1f\x8b":  # gzip magic number

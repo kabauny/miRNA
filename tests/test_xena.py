@@ -18,20 +18,29 @@ PHENO_TSV = (
 
 
 class FakeResponse:
-    def __init__(self, content: bytes):
+    def __init__(self, content: bytes, status_code: int = 200):
         self.content = content
+        self.status_code = status_code
 
     def raise_for_status(self):
-        pass
+        if self.status_code >= 400:
+            raise AssertionError(f"HTTP {self.status_code}")
 
 
 class FakeSession:
-    def __init__(self, content: bytes):
+    """Serves ``content`` for the ``.gz`` URL; 404s everything else by default."""
+
+    def __init__(self, content: bytes, gz_only: bool = True):
         self._content = content
+        self.gz_only = gz_only
         self.last_url = None
+        self.urls = []
 
     def get(self, url, timeout=None):
+        self.urls.append(url)
         self.last_url = url
+        if self.gz_only and not url.endswith(".gz"):
+            return FakeResponse(b"", status_code=403)
         return FakeResponse(self._content)
 
 
@@ -69,7 +78,26 @@ def test_phenotype_orientation_samples_as_rows():
     assert pheno.index.name == "sample"
 
 
-def test_download_url_built_from_host():
+def test_download_requests_gz_object():
+    # Xena stores matrices gzipped at <dataset>.gz; the loader must request that.
     sess = FakeSession(EXPR_TSV.encode("utf-8"))
     XenaClient(host="tcga", session=sess).expression_matrix("TCGA.LUAD.sampleMap/miRNA_HiSeq_gene")
-    assert sess.last_url == "https://tcga.xenahubs.net/download/TCGA.LUAD.sampleMap/miRNA_HiSeq_gene"
+    assert sess.last_url == (
+        "https://tcga.xenahubs.net/download/TCGA.LUAD.sampleMap/miRNA_HiSeq_gene.gz"
+    )
+
+
+def test_download_falls_back_to_plain_when_gz_absent():
+    # A dataset stored uncompressed: .gz 404s, loader retries the bare key.
+    class PlainOnly(FakeSession):
+        def get(self, url, timeout=None):
+            self.urls.append(url)
+            self.last_url = url
+            if url.endswith(".gz"):
+                return FakeResponse(b"", status_code=404)
+            return FakeResponse(self._content)
+
+    sess = PlainOnly(EXPR_TSV.encode("utf-8"))
+    mat = XenaClient(host="tcga", session=sess).expression_matrix("ds")
+    assert mat.loc["hsa-miR-21", "S1"] == 5.0
+    assert sess.urls[0].endswith(".gz") and sess.last_url.endswith("/ds")

@@ -82,12 +82,38 @@ PYGB, GPR78), and **proliferation** (mitotic spindle, ANLN). The protective gene
 skew toward metabolic/differentiation programs (GLS2, GNMT, HLF) and did not reach
 pathway-level significance on their own.
 
-## 3. miRNA screen — not run here (data access)
+## 3. miRNA screen — run, and essentially null
 
-The analogous *miRNA* survival screen could **not** be run in this environment.
-A miRNA screen needs a TCGA miRNA matrix paired with OS; that pairing exists on
-UCSC Xena (`tcga.xenahubs.net`), which is **egress-blocked** here. The miRNA
-profiles cBioPortal hosts for lung (`lusc_tcga_pub`, CPTAC LUAD/LUSC) carry **no
-OS fields**, so they cannot substitute. With egress to `tcga.xenahubs.net`
-enabled, the same screen machinery (`mirna_tcga.screen` + `mirna_tcga.xena`)
-applies directly to miRNA features.
+miRNA expression (UCSC Xena, already log2) was matched to the same cBioPortal OS
+outcomes by patient barcode and screened identically. Reproduce with:
+
+```bash
+python scripts/10_mirna_survival_screen.py --save-dir results
+```
+
+- **Cohort:** 768 NSCLC patients with both a tumour miRNA profile and OS
+  (291 deaths); 567 mature miRNAs tested (detected in ≥80% of samples,
+  remainder per-subtype median-imputed).
+- **Result:** **no miRNA reaches FDR q < 0.05** — the best is MIMAT0006789
+  (protective, p = 2e-4, **q = 0.11**). The strongest nominal candidates:
+
+  | miRNA (miRBase accession) | direction | z | p | q |
+  |---|---|---|---|---|
+  | MIMAT0006789 | protective | −3.73 | 0.0002 | 0.11 |
+  | MIMAT0000426 | risk | +3.47 | 0.0005 | 0.13 |
+  | MIMAT0000681 | protective | −3.40 | 0.0007 | 0.13 |
+  | MIMAT0000243 | protective | −3.25 | 0.0012 | 0.13 |
+  | MIMAT0000064 | protective | −3.11 | 0.0019 | 0.13 |
+
+  (Accessions resolve to `hsa-miR-*` names at mirbase.org.)
+
+**Takeaway.** In this cohort, *individual* mRNA expression carries far stronger
+univariate prognostic signal than *individual* miRNA expression: 88 genes clear
+genome-wide FDR, but no single miRNA does. This is consistent with miRNAs acting
+diffusely (each tunes many targets) rather than as strong stand-alone survival
+markers — the mRNA-level EMT/hypoxia/proliferation programs above are where the
+robust signal is.
+
+> Note: this screen needs egress to `tcga.xenahubs.net` (the TCGA miRNA + OS
+> pairing). That host is reachable; the matrices are served gzipped at
+> `<dataset>.gz` (`mirna_tcga.xena` requests that object).

@@ -43,7 +43,8 @@ scripts/             # runnable pipeline examples
   06_signature_overlap.py        # overlap between mRNA & miRNA signatures
   07_nsclc_clinical.py           # NSCLC (LUAD+LUSC) clinical summary
   08_nsclc_expression_survival.py # OS in NSCLC stratified by one gene/miRNA
-  09_survival_screen.py          # genome-wide OS screen + pathway enrichment
+  09_survival_screen.py          # genome-wide mRNA OS screen + pathway enrichment
+  10_mirna_survival_screen.py    # genome-wide miRNA OS screen (Xena + cBioPortal OS)
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
@@ -75,12 +76,13 @@ python scripts/08_nsclc_expression_survival.py --mirna hsa-mir-21 # miRNA (Xena)
 # Genome-wide screen: every protein-coding gene tested for an OS association in
 # NSCLC (subtype-stratified Cox score test, FDR-controlled), then pathway
 # over-representation of the significant genes (needs [survival] extra):
-python scripts/09_survival_screen.py                 # full transcriptome (~20k genes)
+python scripts/09_survival_screen.py                 # mRNA: full transcriptome (~20k genes)
 python scripts/09_survival_screen.py --max-genes 2000 --save-dir results  # quick
+python scripts/10_mirna_survival_screen.py           # miRNA screen (needs Xena egress)
 ```
 
-A worked run of the genome-wide screen (88 survival-associated genes and the
-pathways they concentrate in) is written up in
+A worked run of the genome-wide screens (88 survival-associated genes, the
+pathways they concentrate in, and the miRNA result) is written up in
 [`docs/nsclc_survival_screen.md`](docs/nsclc_survival_screen.md).
 
 Or from Python:
@@ -120,12 +122,12 @@ the network egress allowlist** — otherwise requests return
 `403 Host not in allowlist`. See
 https://code.claude.com/docs/en/claude-code-on-the-web.
 
-> **miRNA survival note.** A genome-wide *miRNA* survival screen needs a miRNA
-> matrix that is paired with overall-survival data. The TCGA miRNA matrices on
-> UCSC Xena carry that pairing, so the miRNA screen requires egress to
-> `tcga.xenahubs.net`. The miRNA profiles that cBioPortal *does* host for lung
-> (`lusc_tcga_pub`, CPTAC LUAD/LUSC) do **not** include OS fields, so they cannot
-> substitute. mRNA + pathway screening runs entirely against cBioPortal.
+> **miRNA survival note.** The *miRNA* survival screen pairs UCSC Xena miRNA
+> matrices with cBioPortal OS (matched by patient barcode); it needs egress to
+> `tcga.xenahubs.net`. Xena serves each matrix **gzipped at `<dataset>.gz`** (the
+> bare key returns S3 `AccessDenied`), which `mirna_tcga.xena` handles. The miRNA
+> profiles cBioPortal hosts for lung (`lusc_tcga_pub`, CPTAC LUAD/LUSC) lack OS
+> fields, so Xena is required for the miRNA arm.
 
 ## Data sources
 
