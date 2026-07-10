@@ -23,6 +23,7 @@ class Config:
     profiles: dict[str, str]
     sample_lists: dict[str, str]
     analysis: dict[str, Any]
+    cohorts: dict[str, list[str]] = field(default_factory=dict)
     xena: dict[str, Any] = field(default_factory=dict)
     xena_mirna: dict[str, str] = field(default_factory=dict)
     raw: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -52,6 +53,7 @@ def load_config(path: str | Path | None = None) -> Config:
         profiles=data["profiles"],
         sample_lists=data["sample_lists"],
         analysis=data["analysis"],
+        cohorts=data.get("cohorts", {}),
         xena=data.get("xena", {}),
         xena_mirna=data.get("xena_mirna", {}),
         raw=data,

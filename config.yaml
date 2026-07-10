@@ -22,6 +22,11 @@ studies:
   luad: "luad_tcga_pan_can_atlas_2018"
   lusc: "lusc_tcga_pan_can_atlas_2018"
 
+# Named groupings of studies. NSCLC (non-small-cell lung cancer) spans both
+# adenocarcinoma (LUAD) and squamous-cell carcinoma (LUSC).
+cohorts:
+  nsclc: ["luad", "lusc"]
+
 # Molecular profile + sample-list suffixes are appended to each study id, e.g.
 #   "luad_tcga_pan_can_atlas_2018_rna_seq_v2_mrna"
 # Discover the exact ids available for a study with:
