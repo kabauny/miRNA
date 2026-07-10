@@ -33,6 +33,7 @@ src/mirna_tcga/      # the package
   survival.py        # Kaplan-Meier / Cox PH (optional deps)
   screen.py          # genome-wide survival screen (vectorized Cox score test)
   enrich.py          # pathway over-representation (GMT + hypergeometric)
+  mirbase.py         # MIMAT accession -> hsa-miR name lookup (mature.fa)
   panels.py          # small demo gene panel
 scripts/             # runnable pipeline examples
   01_mirna_subtype_signature.py  # LUAD vs LUSC miRNA signature (Xena)

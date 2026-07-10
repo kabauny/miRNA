@@ -28,9 +28,14 @@ from mirna_tcga import load_config
 from mirna_tcga.cbioportal import CBioPortalClient
 from mirna_tcga.cohorts import cohort_study_keys, nsclc_clinical
 from mirna_tcga.integrate import sample_to_patient
+from mirna_tcga.mirbase import load_mimat_map
 from mirna_tcga.screen import cox_score_screen
 from mirna_tcga.survival import coerce_clinical, cox_model
 from mirna_tcga.xena import XenaClient
+
+DEFAULT_MATURE_FA = (
+    "https://raw.githubusercontent.com/nf-core/test-datasets/smrnaseq/reference/mature.fa"
+)
 
 
 def _is_tumor(sample_id: str) -> bool:
@@ -97,13 +102,21 @@ def main() -> None:
 
     # 4. score-test screen across all miRNAs
     res = cox_score_screen(Xm, dur, evt, pd.Series(subtype.to_numpy(), index=X.index))
+    # attach readable hsa-miR names (falls back to the accession if unavailable)
+    try:
+        cache = Path(args.save_dir or ".") / "genesets_cache" / "mature.fa"
+        names = load_mimat_map(cfg.raw.get("mirbase_mature_fa", DEFAULT_MATURE_FA), cache)
+    except Exception:  # pragma: no cover - network/offline fallback
+        names = {}
+    res.insert(0, "miRNA", [names.get(a, a) for a in res.index])
+
     hits = res[res["q"] < args.fdr]
     print(f"miRNAs with real survival impact (BH q < {args.fdr}): {len(hits)}")
     print(f"  higher expression -> WORSE survival: {int((hits['z'] > 0).sum())}")
     print(f"  higher expression -> BETTER survival: {int((hits['z'] < 0).sum())}\n")
     print("Top 20 by significance:")
     show = res.head(20).assign(dir=np.where(res.head(20)["z"] > 0, "risk", "prot"))
-    print(show.round(4), "\n")
+    print(show.round(4).to_string(), "\n")
 
     # 5. reportable hazard ratios via full Cox on the strongest hits
     print(f"Full Cox hazard ratios (per SD, subtype-adjusted) for top {args.top} hits:")
@@ -117,11 +130,13 @@ def main() -> None:
         }).dropna()
         try:
             s = cox_model(d, ["expr_z", "is_lusc"]).summary.loc["expr_z"]
-            rows.append((feat, s["exp(coef)"], s["exp(coef) lower 95%"],
-                         s["exp(coef) upper 95%"], s["p"]))
+            rows.append((names.get(feat, feat), feat, s["exp(coef)"],
+                         s["exp(coef) lower 95%"], s["exp(coef) upper 95%"], s["p"]))
         except Exception:  # pragma: no cover - numerical edge cases
             continue
-    hr = pd.DataFrame(rows, columns=["miRNA", "HR", "HR_low", "HR_high", "cox_p"]).set_index("miRNA")
+    hr = pd.DataFrame(
+        rows, columns=["miRNA", "accession", "HR", "HR_low", "HR_high", "cox_p"]
+    ).set_index("miRNA")
     print(hr.round(3), "\n")
 
     if args.save_dir:

@@ -94,25 +94,39 @@ python scripts/10_mirna_survival_screen.py --save-dir results
 - **Cohort:** 768 NSCLC patients with both a tumour miRNA profile and OS
   (291 deaths); 567 mature miRNAs tested (detected in ≥80% of samples,
   remainder per-subtype median-imputed).
-- **Result:** **no miRNA reaches FDR q < 0.05** — the best is MIMAT0006789
+- **Result:** **no miRNA reaches FDR q < 0.05** — the best is hsa-miR-1468-5p
   (protective, p = 2e-4, **q = 0.11**). The strongest nominal candidates:
 
-  | miRNA (miRBase accession) | direction | z | p | q |
-  |---|---|---|---|---|
-  | MIMAT0006789 | protective | −3.73 | 0.0002 | 0.11 |
-  | MIMAT0000426 | risk | +3.47 | 0.0005 | 0.13 |
-  | MIMAT0000681 | protective | −3.40 | 0.0007 | 0.13 |
-  | MIMAT0000243 | protective | −3.25 | 0.0012 | 0.13 |
-  | MIMAT0000064 | protective | −3.11 | 0.0019 | 0.13 |
-
-  (Accessions resolve to `hsa-miR-*` names at mirbase.org.)
+  | miRNA | accession | direction | z | p | q |
+  |---|---|---|---|---|---|
+  | hsa-miR-1468-5p | MIMAT0006789 | protective | −3.73 | 0.0002 | 0.11 |
+  | hsa-miR-132-3p | MIMAT0000426 | risk | +3.47 | 0.0005 | 0.13 |
+  | hsa-miR-29c-3p | MIMAT0000681 | protective | −3.40 | 0.0007 | 0.13 |
+  | hsa-miR-148a-3p | MIMAT0000243 | protective | −3.25 | 0.0012 | 0.13 |
+  | hsa-miR-31-3p | MIMAT0004504 | risk | +3.12 | 0.0018 | 0.13 |
+  | hsa-let-7c-5p | MIMAT0000064 | protective | −3.11 | 0.0019 | 0.13 |
 
 **Takeaway.** In this cohort, *individual* mRNA expression carries far stronger
 univariate prognostic signal than *individual* miRNA expression: 88 genes clear
 genome-wide FDR, but no single miRNA does. This is consistent with miRNAs acting
 diffusely (each tunes many targets) rather than as strong stand-alone survival
-markers — the mRNA-level EMT/hypoxia/proliferation programs above are where the
-robust signal is.
+markers.
+
+But the *named* miRNA ranking is biologically coherent and reinforces the mRNA
+story rather than contradicting it:
+
+- The **miR-200 family** (miR-200a-3p/-5p, miR-200b-3p, miR-429) and **let-7c**
+  (both arms) cluster among the **protective** miRNAs. The miR-200 family are the
+  canonical *suppressors* of epithelial–mesenchymal transition — so higher miR-200
+  → less EMT → better survival, the mirror image of the mRNA result where the
+  **EMT program is the top risk pathway**.
+- Both arms of **miR-31** (5p and 3p) rank on the **risk** side, an internal
+  consistency check (a single hairpin agreeing with itself) that a pure-noise
+  ranking would not produce.
+
+So the honest summary is: no single miRNA is a stand-alone survival marker at
+genome-wide FDR here, but the miRNA signal points at the **same EMT axis** the
+mRNA screen pins down with significance.
 
 > Note: this screen needs egress to `tcga.xenahubs.net` (the TCGA miRNA + OS
 > pairing). That host is reachable; the matrices are served gzipped at

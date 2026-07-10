@@ -17,6 +17,9 @@ xena_mirna:
   luad: "TCGA.LUAD.sampleMap/miRNA_HiSeq_gene"
   lusc: "TCGA.LUSC.sampleMap/miRNA_HiSeq_gene"
 
+# miRBase mature.fa for MIMAT-accession -> hsa-miR name lookup (URL or local path).
+mirbase_mature_fa: "https://raw.githubusercontent.com/nf-core/test-datasets/smrnaseq/reference/mature.fa"
+
 # TCGA lung studies on cBioPortal (PanCancer Atlas).
 studies:
   luad: "luad_tcga_pan_can_atlas_2018"
