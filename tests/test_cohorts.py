@@ -1,11 +1,23 @@
 import pandas as pd
 
-from mirna_tcga.cohorts import cohort_study_keys, combined_clinical, nsclc_clinical
+from mirna_tcga.cohorts import (
+    cohort_study_keys,
+    combined_clinical,
+    combined_expression,
+    nsclc_clinical,
+    nsclc_expression,
+)
 
 
 class FakeConfig:
     studies = {"luad": "luad_study", "lusc": "lusc_study"}
     cohorts = {"nsclc": ["luad", "lusc"]}
+
+    def mrna_profile(self, key):
+        return self.studies[key] + "_mrna"
+
+    def all_samples_list(self, key):
+        return self.studies[key] + "_all"
 
 
 class FakeClient:
@@ -48,3 +60,40 @@ def test_combined_clinical_all_empty_returns_empty():
     client = FakeClient({})
     df = combined_clinical(client, FakeConfig(), ["luad", "lusc"])
     assert df.empty
+
+
+class FakeExprClient:
+    """Returns a canned genes x samples matrix per mRNA profile id."""
+
+    def __init__(self, mats):
+        self.mats = mats
+        self.calls = []
+
+    def expression_matrix(self, molecular_profile_id, hugo_symbols, sample_list_id):
+        self.calls.append((molecular_profile_id, tuple(hugo_symbols), sample_list_id))
+        return self.mats.get(molecular_profile_id, pd.DataFrame())
+
+
+def _mat(samples, value):
+    return pd.DataFrame({s: [value] for s in samples}, index=["EGFR"])
+
+
+def test_combined_expression_concatenates_samples_across_studies():
+    client = FakeExprClient({
+        "luad_study_mrna": _mat(["TCGA-05-0001-01", "TCGA-05-0002-01"], 3.0),
+        "lusc_study_mrna": _mat(["TCGA-18-0003-01"], 7.0),
+    })
+    mat = nsclc_expression(client, FakeConfig(), ["EGFR"])
+    assert list(mat.index) == ["EGFR"]
+    assert mat.shape == (1, 3)
+    assert mat.loc["EGFR", "TCGA-18-0003-01"] == 7.0
+    # correct profile + sample-list ids were requested per study
+    assert ("luad_study_mrna", ("EGFR",), "luad_study_all") in client.calls
+
+
+def test_combined_expression_skips_empty_and_all_empty_returns_empty():
+    client = FakeExprClient({"luad_study_mrna": _mat(["TCGA-05-0001-01"], 1.0)})
+    mat = combined_expression(client, FakeConfig(), ["EGFR"], ["luad", "lusc"])
+    assert mat.shape == (1, 1)
+    empty = combined_expression(FakeExprClient({}), FakeConfig(), ["EGFR"], ["luad", "lusc"])
+    assert empty.empty

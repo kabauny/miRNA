@@ -141,12 +141,23 @@ class CBioPortalClient:
         gene_chunk: int = 2000,
     ) -> pd.DataFrame:
         """Return a genes (HUGO) x samples expression matrix."""
-        entrez = self.entrez_ids(hugo_symbols)
+        genes = self.get_genes(hugo_symbols)
+        if genes.empty:
+            return pd.DataFrame()
+        entrez = genes["entrezGeneId"].astype(int).tolist()
         long = self.fetch_molecular_data(
             molecular_profile_id, entrez, sample_list_id=sample_list_id, gene_chunk=gene_chunk
         )
         if long.empty:
             return pd.DataFrame()
+        # The SUMMARY projection returns entrezGeneId but not hugoGeneSymbol, so
+        # map ids back to symbols from the gene lookup we already performed.
+        if "hugoGeneSymbol" not in long.columns:
+            id_to_symbol = dict(
+                zip(genes["entrezGeneId"].astype(int), genes["hugoGeneSymbol"])
+            )
+            long = long.copy()
+            long["hugoGeneSymbol"] = long["entrezGeneId"].astype(int).map(id_to_symbol)
         wide = long.pivot_table(
             index="hugoGeneSymbol", columns="sampleId", values="value", aggfunc="first"
         )

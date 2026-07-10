@@ -37,6 +37,10 @@ scripts/             # runnable pipeline examples
   02_subtype_signature.py        # LUAD vs LUSC mRNA signature (cBioPortal)
   03_mutation_analysis.py        # TP53-mutant vs wild-type signature
   04_survival.py                 # overall survival by stage
+  05_signature_survival.py       # subtype signature -> survival (within LUAD)
+  06_signature_overlap.py        # overlap between mRNA & miRNA signatures
+  07_nsclc_clinical.py           # NSCLC (LUAD+LUSC) clinical summary
+  08_nsclc_expression_survival.py # OS in NSCLC stratified by one gene/miRNA
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
@@ -58,6 +62,12 @@ python scripts/01_mirna_subtype_signature.py      # LUAD vs LUSC (miRNA, Xena)
 python scripts/02_subtype_signature.py            # LUAD vs LUSC (mRNA, cBioPortal)
 python scripts/03_mutation_analysis.py --gene TP53 --study luad
 python scripts/04_survival.py --study luad        # needs [survival] extra
+
+# Overall survival in the NSCLC cohort (LUAD + LUSC) split by expression of one
+# feature -- Kaplan-Meier medians, log-rank, and Cox PH (needs [survival] extra):
+python scripts/08_nsclc_expression_survival.py --gene EGFR        # mRNA (cBioPortal)
+python scripts/08_nsclc_expression_survival.py --gene MKI67 --by-study-median
+python scripts/08_nsclc_expression_survival.py --mirna hsa-mir-21 # miRNA (Xena)
 ```
 
 Or from Python:

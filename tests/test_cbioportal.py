@@ -75,6 +75,25 @@ def test_expression_matrix_pivots_long_to_wide():
     assert mat.loc["EGFR", "S1"] == 3.0
 
 
+def test_expression_matrix_maps_entrez_when_symbol_absent():
+    # The real SUMMARY projection returns entrezGeneId but NOT hugoGeneSymbol;
+    # the matrix must still be keyed by HUGO symbol via the gene lookup.
+    sess = FakeSession()
+    sess.post_queue = [
+        [{"hugoGeneSymbol": "TP53", "entrezGeneId": 7157},
+         {"hugoGeneSymbol": "EGFR", "entrezGeneId": 1956}],
+        [
+            {"entrezGeneId": 7157, "sampleId": "S1", "value": 1.0},
+            {"entrezGeneId": 1956, "sampleId": "S1", "value": 3.0},
+            {"entrezGeneId": 1956, "sampleId": "S2", "value": 4.0},
+        ],
+    ]
+    client = _client(sess)
+    mat = client.expression_matrix("prof", ["TP53", "EGFR"], "list_all")
+    assert mat.loc["TP53", "S1"] == 1.0
+    assert mat.loc["EGFR", "S2"] == 4.0
+
+
 def test_mutated_samples_excludes_silent():
     sess = FakeSession()
     sess.post_queue = [
