@@ -27,6 +27,12 @@ studies:
 cohorts:
   nsclc: ["luad", "lusc"]
 
+# Pathway gene-set libraries (GMT) for the survival-screen over-representation
+# analysis (scripts/09_survival_screen.py). Values may be URLs or local paths.
+gene_sets:
+  KEGG_2016: "https://raw.githubusercontent.com/zqfang/GSEApy/master/tests/extdata/enrichr.KEGG_2016.gmt"
+  Hallmark: "https://raw.githubusercontent.com/zqfang/GSEApy/master/tests/extdata/h.all.v7.0.symbols.gmt"
+
 # Molecular profile + sample-list suffixes are appended to each study id, e.g.
 #   "luad_tcga_pan_can_atlas_2018_rna_seq_v2_mrna"
 # Discover the exact ids available for a study with:
