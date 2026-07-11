@@ -133,14 +133,19 @@ class CBioPortalClient:
             )
         return pd.DataFrame(records)
 
-    def expression_matrix(
+    def molecular_matrix(
         self,
         molecular_profile_id: str,
         hugo_symbols: Sequence[str],
         sample_list_id: str,
         gene_chunk: int = 2000,
     ) -> pd.DataFrame:
-        """Return a genes (HUGO) x samples expression matrix."""
+        """Return a genes (HUGO) x samples matrix of molecular values.
+
+        Works for any per-gene continuous or discrete profile (mRNA expression,
+        discrete GISTIC copy-number, log2 CNA, ...): the values are whatever the
+        profile stores.
+        """
         genes = self.get_genes(hugo_symbols)
         if genes.empty:
             return pd.DataFrame()
@@ -164,6 +169,18 @@ class CBioPortalClient:
         wide.index.name = "gene"
         wide.columns.name = "sample"
         return wide
+
+    def expression_matrix(self, *args, **kwargs) -> pd.DataFrame:
+        """Genes x samples mRNA expression matrix (see :meth:`molecular_matrix`)."""
+        return self.molecular_matrix(*args, **kwargs)
+
+    def cna_matrix(self, *args, **kwargs) -> pd.DataFrame:
+        """Genes x samples discrete copy-number matrix (GISTIC: -2..+2).
+
+        -2 = deep (homozygous) deletion, -1 = shallow loss, 0 = diploid,
+        +1 = gain, +2 = amplification.
+        """
+        return self.molecular_matrix(*args, **kwargs)
 
     # -- mutations ---------------------------------------------------------
     def fetch_mutations(
@@ -193,6 +210,54 @@ class CBioPortalClient:
         if "mutationType" in muts.columns:
             muts = muts[muts["mutationType"].str.lower() != "silent"]
         return set(muts["sampleId"].unique())
+
+    def mutation_events(
+        self,
+        molecular_profile_id: str,
+        entrez_gene_ids: Sequence[int],
+        sample_list_id: str,
+        gene_chunk: int = 4000,
+    ) -> pd.DataFrame:
+        """All mutation records for the given genes/samples (chunked, SUMMARY)."""
+        records: list[dict] = []
+        for chunk in _chunked(list(entrez_gene_ids), gene_chunk):
+            records.extend(
+                self._post(
+                    f"molecular-profiles/{molecular_profile_id}/mutations/fetch",
+                    json={"entrezGeneIds": list(chunk), "sampleListId": sample_list_id},
+                    params={"projection": "SUMMARY"},
+                )
+            )
+        return pd.DataFrame(records)
+
+    # -- copy number -------------------------------------------------------
+    def discrete_cna_events(
+        self,
+        molecular_profile_id: str,
+        sample_list_id: str,
+        event_type: str = "HOMDEL",
+    ) -> pd.DataFrame:
+        """Discrete copy-number events of one type across all genes (sparse).
+
+        ``event_type`` is a cBioPortal alteration code: ``HOMDEL`` (deep/
+        homozygous deletion, alteration -2), ``AMP`` (+2), ``HETLOSS`` (-1),
+        ``GAIN`` (+1). Returns one row per (sample, gene) event -- far smaller
+        than the full copy-number matrix.
+        """
+        records = self._post(
+            f"molecular-profiles/{molecular_profile_id}/discrete-copy-number/fetch",
+            json={"sampleListId": sample_list_id},
+            params={"discreteCopyNumberEventType": event_type, "projection": "SUMMARY"},
+        )
+        return pd.DataFrame(records)
+
+    def sample_list_ids(self, sample_list_id: str) -> list[str]:
+        """Sample ids belonging to a named sample list."""
+        rec = self.session.get(
+            self._url(f"sample-lists/{sample_list_id}"), timeout=self.timeout
+        )
+        rec.raise_for_status()
+        return list(rec.json().get("sampleIds", []))
 
     # -- clinical ----------------------------------------------------------
     def get_clinical_data(

@@ -35,11 +35,20 @@ class Config:
     def mutation_profile(self, study_key: str) -> str:
         return self.studies[study_key] + self.profiles["mutation_suffix"]
 
+    def cna_profile(self, study_key: str) -> str:
+        return self.studies[study_key] + self.profiles["cna_suffix"]
+
     def mirna_profile(self, study_key: str) -> str:
         return self.studies[study_key] + self.profiles["mirna_suffix"]
 
     def all_samples_list(self, study_key: str) -> str:
         return self.studies[study_key] + self.sample_lists["all_suffix"]
+
+    def cna_samples_list(self, study_key: str) -> str:
+        return self.studies[study_key] + self.sample_lists["cna_suffix"]
+
+    def sequenced_samples_list(self, study_key: str) -> str:
+        return self.studies[study_key] + self.sample_lists["sequenced_suffix"]
 
 
 def load_config(path: str | Path | None = None) -> Config:

@@ -36,6 +36,7 @@ from mirna_tcga.cbioportal import CBioPortalClient
 from mirna_tcga.cohorts import cohort_study_keys, nsclc_clinical
 from mirna_tcga.enrich import over_representation, parse_gmt
 from mirna_tcga.integrate import sample_to_patient
+from mirna_tcga.layers import protein_coding_map, stream_expression
 from mirna_tcga.screen import cox_score_screen
 from mirna_tcga.survival import coerce_clinical, cox_model
 
@@ -44,31 +45,6 @@ DEFAULT_GENE_SETS = {
     "KEGG_2016": "https://raw.githubusercontent.com/zqfang/GSEApy/master/tests/extdata/enrichr.KEGG_2016.gmt",
     "Hallmark": "https://raw.githubusercontent.com/zqfang/GSEApy/master/tests/extdata/h.all.v7.0.symbols.gmt",
 }
-
-
-def protein_coding_genes(client: CBioPortalClient) -> pd.DataFrame:
-    """All protein-coding genes as a DataFrame[entrezGeneId, hugoGeneSymbol]."""
-    genes = pd.DataFrame(client._get("genes", {"projection": "SUMMARY"}))
-    genes = genes[genes["type"] == "protein-coding"]
-    return genes[["entrezGeneId", "hugoGeneSymbol"]].dropna()
-
-
-def fetch_expression_wide(client, profile, sample_list, entrez, id2sym, chunk=2000):
-    """Stream a genes(HUGO) x samples log2 expression matrix in entrez chunks."""
-    parts = []
-    for i in range(0, len(entrez), chunk):
-        sub = entrez[i : i + chunk]
-        long = client.fetch_molecular_data(profile, sub, sample_list_id=sample_list)
-        if long.empty:
-            continue
-        long["gene"] = long["entrezGeneId"].astype(int).map(id2sym)
-        wide = long.pivot_table(index="gene", columns="sampleId", values="value", aggfunc="first")
-        parts.append(wide.astype("float32"))
-        del long, wide
-    if not parts:
-        return pd.DataFrame()
-    mat = pd.concat(parts)
-    return np.log2(mat.clip(lower=0) + 1.0)
 
 
 def load_gene_sets(specs: dict[str, str], cache_dir: Path) -> dict[str, set[str]]:
@@ -110,21 +86,13 @@ def main() -> None:
     print(f"NSCLC patients with overall-survival data: {len(surv)}")
 
     # 2. stream all protein-coding expression per study, log2 space
-    gene_tbl = protein_coding_genes(client)
+    id2sym = protein_coding_map(client)
     if args.max_genes:
-        gene_tbl = gene_tbl.head(args.max_genes)
-    id2sym = dict(zip(gene_tbl["entrezGeneId"].astype(int), gene_tbl["hugoGeneSymbol"]))
+        id2sym = dict(list(id2sym.items())[: args.max_genes])
     entrez = list(id2sym)
     print(f"Screening {len(entrez)} protein-coding genes across LUAD + LUSC ...")
-
-    mats = []
-    for key in cohort_study_keys(cfg, "nsclc"):
-        mat = fetch_expression_wide(
-            client, cfg.mrna_profile(key), cfg.all_samples_list(key), entrez, id2sym
-        )
-        print(f"  {key.upper()}: {mat.shape[0]} genes x {mat.shape[1]} samples")
-        mats.append(mat)
-    expr = pd.concat(mats, axis=1)  # genes x samples (both studies)
+    expr = stream_expression(client, cfg, entrez, id2sym, cohort_study_keys(cfg, "nsclc"))
+    print(f"  expression matrix: {expr.shape[0]} genes x {expr.shape[1]} samples")
 
     # 3. align samples -> patients -> survival, then score-test screen
     X = expr.T  # samples x genes

@@ -43,6 +43,7 @@ gene_sets:
 profiles:
   mrna_suffix: "_rna_seq_v2_mrna"          # mRNA expression (RSEM)
   mutation_suffix: "_mutations"            # mutation calls
+  cna_suffix: "_gistic"                    # discrete GISTIC copy-number (-2..+2)
   # NOTE: miRNA expression is NOT available for most PanCancer studies on
   # cBioPortal. For miRNA use a Firehose-legacy study that has it, or switch
   # the data layer to UCSC Xena / GDC. Left here for when a profile exists.
@@ -50,6 +51,8 @@ profiles:
 
 sample_lists:
   all_suffix: "_all"                       # every sample in the study
+  cna_suffix: "_cna"                       # samples with copy-number data
+  sequenced_suffix: "_sequenced"           # samples with mutation data
 
 analysis:
   mutation_gene: "TP53"                    # gene for mutant-vs-wildtype split

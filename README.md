@@ -32,7 +32,10 @@ src/mirna_tcga/      # the package
   idmap.py           # gene/miRNA id conversion (optional deps)
   survival.py        # Kaplan-Meier / Cox PH (optional deps)
   screen.py          # genome-wide survival screen (vectorized Cox score test)
+  associate.py       # binary-endpoint screens (stratified rank-sum, Fisher)
+  endpoints.py       # metastasis endpoints (distant M1, nodal N+) from clinical
   enrich.py          # pathway over-representation (GMT + hypergeometric)
+  layers.py          # multi-omic loaders (expression, deletions, mutations)
   mirbase.py         # MIMAT accession -> hsa-miR name lookup (mature.fa)
   panels.py          # small demo gene panel
 scripts/             # runnable pipeline examples
@@ -46,6 +49,8 @@ scripts/             # runnable pipeline examples
   08_nsclc_expression_survival.py # OS in NSCLC stratified by one gene/miRNA
   09_survival_screen.py          # genome-wide mRNA OS screen + pathway enrichment
   10_mirna_survival_screen.py    # genome-wide miRNA OS screen (Xena + cBioPortal OS)
+  11_cnv_mutation_screen.py      # deep-deletion & mutation screens vs OS + metastasis
+  12_constellation_model.py      # cross-validated multi-omic OS / metastasis models
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
@@ -80,11 +85,18 @@ python scripts/08_nsclc_expression_survival.py --mirna hsa-mir-21 # miRNA (Xena)
 python scripts/09_survival_screen.py                 # mRNA: full transcriptome (~20k genes)
 python scripts/09_survival_screen.py --max-genes 2000 --save-dir results  # quick
 python scripts/10_mirna_survival_screen.py           # miRNA screen (needs Xena egress)
+
+# Copy-number deletions + mutations vs survival AND metastasis, then a
+# cross-validated multi-omic model of the two outcomes:
+python scripts/11_cnv_mutation_screen.py --save-dir results
+python scripts/12_constellation_model.py --save-dir results
 ```
 
-A worked run of the genome-wide screens (88 survival-associated genes, the
-pathways they concentrate in, and the miRNA result) is written up in
-[`docs/nsclc_survival_screen.md`](docs/nsclc_survival_screen.md).
+Worked results are written up in
+[`docs/nsclc_survival_screen.md`](docs/nsclc_survival_screen.md) (mRNA/miRNA
+survival + pathways) and
+[`docs/nsclc_multiomics_metastasis.md`](docs/nsclc_multiomics_metastasis.md)
+(copy-number, mutations, metastasis, and the constellation model).
 
 Or from Python:
 
