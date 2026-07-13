@@ -56,6 +56,7 @@ scripts/             # runnable pipeline examples
   14_metastasis_spared_deletions.py # genes never deleted in metastasis (spared machinery)
   15_pancancer_spared_deletions.py  # does the spared-deletion signal generalize? (LUAD-specific)
   16_never_deleted_stage_iv.py      # strict "never deleted in stage IV" re-run on the 126-patient cohort
+  17_metastasis_expression_diff.py  # differential expression: metastatic vs non-metastatic (incl. true-stage-I reference)
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
@@ -105,6 +106,11 @@ python scripts/13_constellation_sparse.py --save-dir results  # + miRNA layer, L
 python scripts/14_metastasis_spared_deletions.py --save-dir results
 python scripts/15_pancancer_spared_deletions.py --save-dir results  # generalize across cancers
 python scripts/15_pancancer_spared_deletions.py --protection        # del OR truncating mutation
+
+# Differential mRNA expression, metastatic vs non-metastatic (subtype-adjusted
+# van Elteren rank-sum), across three references: all-M0, a clean "true stage I"
+# indolent control (Biotab follow-up), and node-positive vs node-negative:
+python scripts/17_metastasis_expression_diff.py --save-dir results
 ```
 
 Worked results are written up in
@@ -113,7 +119,10 @@ survival + pathways) and
 [`docs/nsclc_multiomics_metastasis.md`](docs/nsclc_multiomics_metastasis.md)
 (copy-number, mutations, metastasis, and the constellation model), and
 [`docs/nsclc_metastasis_spared_deletions.md`](docs/nsclc_metastasis_spared_deletions.md)
-(the negative-selection screen for metastasis-required machinery).
+(the negative-selection screen for metastasis-required machinery), and
+[`docs/nsclc_metastasis_expression.md`](docs/nsclc_metastasis_expression.md)
+(differential expression metastatic vs non-metastatic: proliferation tracks
+stage, and distant metastasis has no bulk-primary signature).
 
 Or from Python:
 
