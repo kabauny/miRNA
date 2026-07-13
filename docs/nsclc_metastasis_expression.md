@@ -199,6 +199,17 @@ gain is **functional as a coordinated cis-dosage effect** but pins down what it 
 - **No single 17q gene clears FDR at matched stage** (best q ≈ 0.10) — confirming
   this is a genuine *arm-level* dosage effect, not one driver gene. It is why the
   arm-level CNV test (q ≈ 0.01) sees it while the per-gene screens do not.
+- **The cis-dosage is LUSC-specific — and it separates dosage from program.**
+  Re-running the drill-down per subtype: in **LUSC** the 17q arm is coordinately
+  up — **66 %** of 17q genes up whole-cohort, **70 %** within stage II (vs 40 % /
+  53 % genome-wide), matching the LUSC-specific DNA gain. In **LUAD** there is **no
+  arm-level skew** (48 % ≈ 44 % baseline). Yet a few 17q genes (`TK1`, `BIRC5`,
+  `KPNA2`) *are* up in LUAD N+ — because they are E2F/proliferation targets riding
+  the LUAD *program*, not the arm. So the same gene (e.g. `TK1`) is elevated for
+  two different reasons: **copy-number dosage in LUSC, proliferation program in
+  LUAD.** ERBB2 remains a non-driver in both; the more plausible LUSC 17q-amplicon
+  targets are chromatin/p53-pathway genes on the arm (`SMARCD2`, `SUZ12`, and
+  `PPM1D` at 17q23, a recurrently amplified p53-suppressing oncogene).
 
 ## Conclusion
 
