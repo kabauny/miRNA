@@ -44,6 +44,7 @@ from mirna_tcga.endpoints import (
     distant_metastasis,
     distant_metastasis_biotab,
     nodal_metastasis,
+    nodal_metastasis_within_stage,
 )
 from mirna_tcga.enrich import load_gene_sets, over_representation
 from mirna_tcga.integrate import sample_to_patient
@@ -53,33 +54,6 @@ DEFAULT_GENE_SETS = {
     "KEGG_2016": "https://raw.githubusercontent.com/zqfang/GSEApy/master/tests/extdata/enrichr.KEGG_2016.gmt",
     "Hallmark": "https://raw.githubusercontent.com/zqfang/GSEApy/master/tests/extdata/h.all.v7.0.symbols.gmt",
 }
-_N_POS = {"N1", "N2", "N3"}
-
-
-def _simplify_stage(v: object) -> str | None:
-    s = str(v).upper().replace("STAGE ", "").strip()
-    for r in ("IV", "III", "II", "I"):
-        if s.startswith(r):
-            return r
-    return None
-
-
-def stage_restricted_nodal(clin: pd.DataFrame, stage_code: str) -> pd.Series:
-    """N+ vs N0 restricted to one pathologic stage -- holds stage constant.
-
-    Isolates nodal spread from tumour stage/progression: within a single stage,
-    does node-positive vs node-negative still carry the proliferation signature,
-    or was that signal really just higher-stage tumours proliferating more?
-    """
-    st = clin.set_index("patientId")["AJCC_PATHOLOGIC_TUMOR_STAGE"].map(_simplify_stage)
-    n = clin.set_index("patientId")["PATH_N_STAGE"].astype(str).str.upper().str[:2]
-    lab = pd.Series(pd.NA, index=st.index, dtype="Int64")
-    in_stage = st.eq(stage_code)
-    lab[in_stage & n.eq("N0")] = 0
-    lab[in_stage & n.isin(_N_POS)] = 1
-    return lab.dropna().astype(int)
-
-
 def run_endpoint(name, Xg, pats, endpoint, subtype, gene_sets, fdr):
     """van Elteren DE screen of Xg (samples x genes) vs one 0/1 endpoint."""
     y = pd.Series(endpoint.reindex(pats).to_numpy(), index=Xg.index)
@@ -139,7 +113,7 @@ def main() -> None:
     # heterogeneous, part-node-positive M0 group.
     # Stage-II-only nodal contrast: N+ vs N0 with stage held constant (stage II has
     # a balanced 177 vs 105 split; stage I is ~all N0 and stage III ~all N+).
-    nmet_s2 = stage_restricted_nodal(clin, "II")
+    nmet_s2 = nodal_metastasis_within_stage(clin, "II")
     contrasts = [
         ("distant metastasis (biotab)", dmet),
         ("nodal metastasis (N+)", nmet),

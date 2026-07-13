@@ -84,3 +84,29 @@ def nodal_metastasis(clin: pd.DataFrame) -> pd.Series:
     val[n.eq("N0")] = 0
     val[n.isin(_N_POS)] = 1
     return _series(clin, val, "nodal_met")
+
+
+def _simplify_stage(v: object) -> str | None:
+    s = str(v).upper().replace("STAGE ", "").strip()
+    for r in ("IV", "III", "II", "I"):
+        if s.startswith(r):
+            return r
+    return None
+
+
+def nodal_metastasis_within_stage(clin: pd.DataFrame, stage_code: str = "II") -> pd.Series:
+    """1 = N+, 0 = N0, restricted to a single pathologic stage (e.g. "II").
+
+    Holds tumour stage constant so a nodal contrast is not confounded by stage:
+    across the whole cohort N0 tumours are ~78% stage I while N+ tumours are stage
+    II-III, so plain ``nodal_metastasis`` partly measures stage/progression. Within
+    one stage it measures nodal status per se. Stage II is the balanced choice in
+    TCGA NSCLC (stage I is nearly all N0, stage III nearly all N+).
+    """
+    n = clin.get("PATH_N_STAGE", pd.Series(index=clin.index, dtype=object)).astype(str).str.upper().str[:2]
+    stage = clin.get("AJCC_PATHOLOGIC_TUMOR_STAGE", pd.Series(index=clin.index, dtype=object)).map(_simplify_stage)
+    in_stage = stage.eq(stage_code)
+    val = pd.Series(pd.NA, index=clin.index, dtype="Float64")
+    val[in_stage & n.eq("N0")] = 0
+    val[in_stage & n.isin(_N_POS)] = 1
+    return _series(clin, val, "nodal_met_stage")

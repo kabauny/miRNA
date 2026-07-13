@@ -70,16 +70,27 @@ def _binary_matrix(events, samples, id2sym, gene_col="entrezGeneId"):
     return wide.reindex(index=samples).fillna(0).astype("int8")
 
 
-def deletion_matrix(client, cfg, id2sym, study_keys):
-    """samples x genes 0/1 deep-deletion (HOMDEL) matrix + per-sample subtype."""
+def cna_matrix(client, cfg, id2sym, study_keys, event_type: str = "HOMDEL"):
+    """samples x genes 0/1 discrete-CNA matrix for one GISTIC event + subtype.
+
+    ``event_type`` is a cBioPortal alteration code: ``HOMDEL`` (deep deletion,
+    GISTIC -2) or ``AMP`` (high amplification, +2) are the two focal events used
+    here. Each is a sparse fetch (only altered sample/gene pairs), so pulling both
+    is cheap.
+    """
     flags, subtype = [], {}
     for key in study_keys:
         samples = client.sample_list_ids(cfg.cna_samples_list(key))
-        ev = client.discrete_cna_events(cfg.cna_profile(key), cfg.cna_samples_list(key), "HOMDEL")
+        ev = client.discrete_cna_events(cfg.cna_profile(key), cfg.cna_samples_list(key), event_type)
         flags.append(_binary_matrix(ev, samples, id2sym))
         subtype.update({s: key.upper() for s in samples})
     B = pd.concat(flags, axis=0).fillna(0).astype("int8") if flags else pd.DataFrame()
     return B, pd.Series(subtype)
+
+
+def deletion_matrix(client, cfg, id2sym, study_keys):
+    """samples x genes 0/1 deep-deletion (HOMDEL) matrix + per-sample subtype."""
+    return cna_matrix(client, cfg, id2sym, study_keys, "HOMDEL")
 
 
 def mutation_matrix(client, cfg, id2sym, study_keys, truncating_only: bool = False):

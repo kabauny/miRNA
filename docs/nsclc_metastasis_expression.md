@@ -1,13 +1,14 @@
-# Differential expression: metastatic vs non-metastatic NSCLC
+# Metastatic vs non-metastatic NSCLC: expression and copy number
 
-What genes' mRNA expression differs most between metastatic and non-metastatic
-NSCLC? The deletion screens ask what copy-number *loss* distinguishes metastasis;
-this asks the broader transcriptional question.
+What genes distinguish metastatic from non-metastatic NSCLC — in mRNA expression
+(script 17) and in copy number (script 18)? Both use the same set of clean,
+stage-aware contrasts, and both reach the same conclusion.
 
 Reproduce:
 
 ```bash
-python scripts/17_metastasis_expression_diff.py --save-dir results
+python scripts/17_metastasis_expression_diff.py --save-dir results  # expression
+python scripts/18_metastasis_cnv_diff.py --save-dir results         # copy number
 ```
 
 ## Method
@@ -87,22 +88,49 @@ genes still lean up (`ASF1B`, `CENPP`, q ≈ 0.10) but as a whisper, not a signa
 So the whole-cohort nodal proliferation signature was **tumour stage, not nodal
 spread**: hold stage constant and it disappears.
 
+## Result 4 — copy number tells the same story (script 18)
+
+The same question for **copy number** — are genes differentially **deleted or
+amplified**? — using a two-sided, subtype-adjusted CMH
+(`associate.cmh_two_sided_screen`) over both deep deletions (HOMDEL) and high
+amplifications (AMP), across the same contrasts:
+
+| Contrast | deep deletions (q<0.05) | amplifications |
+|---|---|---|
+| distant met vs true stage I | **0** (best q≈0.054) | 0 |
+| distant met vs all M0 | 106 *enriched* | 0 |
+| nodal N+ vs N0 | **0** | 0 |
+| nodal N+ vs N0, stage II | **0** | 0 |
+
+The only contrast with hits is the **dirty** one: distant-met vs all-M0 gives 106
+genes with *more* deep deletions in metastatic tumours (0 depleted, 0 amplified).
+But they are low-frequency (~0.3–1.3% in M0 → 3–5% in metastatic), **scattered
+genome-wide** (`NOTCH2`, `RHOC`, `PHGDH`, `OPCML`, 1q `NBPF`…), and all
+one-directional — the signature of **general genomic instability / higher deletion
+burden in more-aggressive tumours**, not specific metastasis loci. Against the
+clean true-stage-I control it **evaporates to 0** (best q≈0.054). Nodal status
+shows *no* CNV signal at all — even whole-cohort — and amplifications show nothing
+anywhere. The 8p23 "spared deletion" (scripts 14–16) reappears here at q≈0.054 but
+is a borderline minority effect, swamped by the opposite general "more deletions"
+trend.
+
 ## Conclusion
 
-Across four contrasts the story is consistent:
+Across expression and copy number, the same result:
 
-- **Distant metastasis** — no bulk-primary-tumour expression signature, against a
-  heterogeneous M0 reference *or* a clean true-stage-I indolent control (0 genes,
-  best q ≈ 0.41).
-- **Nodal metastasis** — a large proliferation signature whole-cohort, but it is
-  **explained by tumour stage**: it collapses to nothing within stage II.
+- **Distant metastasis** — no bulk-primary signature in *either* omic, against a
+  heterogeneous M0 reference *or* a clean true-stage-I indolent control (expression
+  0 genes best q≈0.41; CNV 0 genes best q≈0.054).
+- **Nodal metastasis** — a large proliferation *expression* signature whole-cohort
+  that is **explained by tumour stage** (collapses within stage II); *no* CNV
+  signal at all.
 
-Net: in TCGA NSCLC, **metastatic status leaves no transcriptional imprint on the
-bulk primary tumour beyond what tumour stage / proliferation already captures.**
-The single expression axis that separates "aggressive" from "indolent" here is
-proliferation, and it tracks stage. A genuine metastasis-specific program, if one
-exists, would need single-cell / subclonal resolution or actual metastasis samples
-(MSK-MET / MET500) — bulk primary RNA does not carry it. (Note this is the
-metastasis contrast; the *survival* screen in `nsclc_survival_screen.md` is
-EMT-dominated — what predicts death differs from what marks tumour stage.)
+Net: in TCGA NSCLC, **metastatic status leaves no clean molecular imprint on the
+bulk primary tumour beyond markers of tumour stage / aggressiveness** —
+proliferation (expression) and diffuse deletion burden (CNV), both stage-linked,
+neither a metastasis-specific program or locus. A genuine metastasis program, if
+one exists, would need single-cell / subclonal resolution or actual metastasis
+samples (MSK-MET / MET500). (This is the metastasis contrast; the *survival* screen
+in `nsclc_survival_screen.md` is EMT-dominated — what predicts death differs from
+what marks tumour stage.)
 

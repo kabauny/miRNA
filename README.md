@@ -57,6 +57,7 @@ scripts/             # runnable pipeline examples
   15_pancancer_spared_deletions.py  # does the spared-deletion signal generalize? (LUAD-specific)
   16_never_deleted_stage_iv.py      # strict "never deleted in stage IV" re-run on the 126-patient cohort
   17_metastasis_expression_diff.py  # differential expression: metastatic vs non-metastatic (incl. true-stage-I reference)
+  18_metastasis_cnv_diff.py         # two-sided CNV diff (deletions + amplifications) across the same clean contrasts
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)

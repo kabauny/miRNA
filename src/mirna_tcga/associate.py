@@ -74,6 +74,51 @@ def ranksum_screen(
     return out[["gene", "z", "auc", "p", "q"]].sort_values("p").set_index("gene")
 
 
+def _cmh_core(B: pd.DataFrame, group: pd.Series, strata: pd.Series):
+    """Shared Cochran-Mantel-Haenszel statistics for a 0/1 feature matrix.
+
+    Returns per feature: ``freq_ref`` / ``freq_idx`` (alteration frequency in the
+    reference ``group == 0`` / index ``group == 1``), ``n_idx`` (index-group
+    count), the CMH numerator ``num`` (observed - expected in the index group; its
+    sign is the direction of effect) and variance ``var``, the Mantel-Haenszel odds
+    ratio ``or_mh``, and the two-sided ``p_two`` (0.5 continuity correction). The
+    one- vs two-sided screens below differ only in how they turn this into a p.
+    """
+    y = group.reindex(B.index).to_numpy()
+    st = strata.reindex(B.index).to_numpy()
+    Bv = B.to_numpy(dtype=float)
+    g1, g0 = (y == 1), (y == 0)
+
+    freq_ref = Bv[g0].mean(0) if g0.sum() else np.zeros(Bv.shape[1])
+    freq_idx = Bv[g1].mean(0) if g1.sum() else np.zeros(Bv.shape[1])
+    n_idx = Bv[g1].sum(0)
+
+    num = np.zeros(Bv.shape[1])   # sum_k (a - E[a])
+    var = np.zeros(Bv.shape[1])
+    or_num = np.zeros(Bv.shape[1])
+    or_den = np.zeros(Bv.shape[1])
+    for s in np.unique(st):
+        m = st == s
+        n1, n0 = int((m & g1).sum()), int((m & g0).sum())
+        n = n1 + n0
+        if n1 == 0 or n0 == 0 or n < 2:
+            continue
+        a = Bv[m & g1].sum(0)          # altered & index
+        b = Bv[m & g0].sum(0)          # altered & reference
+        c, d = n1 - a, n0 - b
+        row1 = a + b                    # altered (either group)
+        num += a - row1 * n1 / n
+        var += row1 * (c + d) * n1 * n0 / (n * n * (n - 1))
+        or_num += a * d / n
+        or_den += b * c / n
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        chi2 = (np.abs(num) - 0.5).clip(min=0) ** 2 / var
+        p_two = chi2_dist.sf(chi2, 1)
+        or_mh = or_num / or_den
+    return freq_ref, freq_idx, n_idx, num, var, or_mh, p_two
+
+
 def cmh_depletion_screen(
     B: pd.DataFrame,
     group: pd.Series,
@@ -98,38 +143,7 @@ def cmh_depletion_screen(
     < 1 = depleted in the index group), one-sided depletion ``p``, and BH ``q``,
     sorted by ``p``.
     """
-    y = group.reindex(B.index).to_numpy()
-    st = strata.reindex(B.index).to_numpy()
-    Bv = B.to_numpy(dtype=float)
-    g1, g0 = (y == 1), (y == 0)
-
-    freq_ref = Bv[g0].mean(0)
-    freq_idx = Bv[g1].mean(0) if g1.sum() else np.zeros(Bv.shape[1])
-    n_idx = Bv[g1].sum(0)
-
-    num = np.zeros(Bv.shape[1])   # sum_k (a - E[a])
-    var = np.zeros(Bv.shape[1])
-    or_num = np.zeros(Bv.shape[1])
-    or_den = np.zeros(Bv.shape[1])
-    for s in np.unique(st):
-        m = st == s
-        n1, n0 = int((m & g1).sum()), int((m & g0).sum())
-        n = n1 + n0
-        if n1 == 0 or n0 == 0 or n < 2:
-            continue
-        a = Bv[m & g1].sum(0)          # deleted & index
-        b = Bv[m & g0].sum(0)          # deleted & reference
-        c, d = n1 - a, n0 - b
-        row1 = a + b                    # deleted (either group)
-        num += a - row1 * n1 / n
-        var += row1 * (c + d) * n1 * n0 / (n * n * (n - 1))
-        or_num += a * d / n
-        or_den += b * c / n
-
-    with np.errstate(divide="ignore", invalid="ignore"):
-        chi2 = (np.abs(num) - 0.5).clip(min=0) ** 2 / var
-        p_two = chi2_dist.sf(chi2, 1)
-        or_mh = or_num / or_den
+    freq_ref, freq_idx, n_idx, num, _var, or_mh, p_two = _cmh_core(B, group, strata)
     # one-sided depletion (fewer deletions in the index group than expected)
     p_dep = np.where(num < 0, p_two / 2, 1 - p_two / 2)
 
@@ -165,6 +179,40 @@ def fisher_screen(B: pd.DataFrame, outcome: pd.Series) -> pd.DataFrame:
         orr = ((a11 + 0.5) * (a00 + 0.5)) / ((a10 + 0.5) * (a01 + 0.5))
         rows.append((feat, a11 + a10, orr, p))
     out = pd.DataFrame(rows, columns=["gene", "n_alt", "odds_ratio", "p"])
+    if out.empty:
+        return out.set_index("gene")
+    out["q"] = benjamini_hochberg(out["p"].to_numpy())
+    return out.sort_values("p").set_index("gene")
+
+
+def cmh_two_sided_screen(
+    B: pd.DataFrame,
+    group: pd.Series,
+    strata: pd.Series,
+    min_freq: float = 0.03,
+) -> pd.DataFrame:
+    """Two-sided subtype-adjusted CMH for a 0/1 feature differing in *either*
+    direction between the index (``group == 1``) and reference (``group == 0``).
+
+    Where :func:`cmh_depletion_screen` asks only "is this deletion *spared* in the
+    index group?", this asks "does this copy-number alteration differ *at all*?" --
+    so it catches both **enrichment** (e.g. an amplification gained in metastatic
+    tumours) and **depletion**. It keeps features altered in >= ``min_freq`` of
+    *either* group (a low reference frequency must not drop an alteration that is
+    common in the index group) and reports a ``direction`` ("enriched" /
+    "depleted" in the index group, from the sign of the CMH numerator).
+
+    Returns per gene: ``freq_ref``, ``freq_idx``, ``n_idx``, ``or_mh``, two-sided
+    ``p``, BH ``q``, and ``direction``; sorted by ``p``.
+    """
+    freq_ref, freq_idx, n_idx, num, _var, or_mh, p_two = _cmh_core(B, group, strata)
+    out = pd.DataFrame({
+        "gene": list(B.columns), "freq_ref": freq_ref, "freq_idx": freq_idx,
+        "n_idx": n_idx.astype(int), "or_mh": or_mh, "p": p_two,
+        "direction": np.where(num < 0, "depleted", "enriched"),
+    })
+    keep = (out["freq_ref"] >= min_freq) | (out["freq_idx"] >= min_freq)
+    out = out[keep].replace([np.inf, -np.inf], np.nan).dropna(subset=["p"])
     if out.empty:
         return out.set_index("gene")
     out["q"] = benjamini_hochberg(out["p"].to_numpy())
