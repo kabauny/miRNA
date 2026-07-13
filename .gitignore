@@ -27,3 +27,7 @@ results/
 .idea/
 .vscode/
 .DS_Store
+
+# Cached gene-set libraries (fetched at runtime)
+genesets_cache/
+*.gmt

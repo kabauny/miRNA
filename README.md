@@ -52,6 +52,7 @@ scripts/             # runnable pipeline examples
   11_cnv_mutation_screen.py      # deep-deletion & mutation screens vs OS + metastasis
   12_constellation_model.py      # cross-validated multi-omic OS / metastasis models
   13_constellation_sparse.py     # driver-focused L1 model + miRNA layer (constellation)
+  14_metastasis_spared_deletions.py # genes never deleted in metastasis (spared machinery)
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
@@ -92,13 +93,19 @@ python scripts/10_mirna_survival_screen.py           # miRNA screen (needs Xena 
 python scripts/11_cnv_mutation_screen.py --save-dir results
 python scripts/12_constellation_model.py --save-dir results
 python scripts/13_constellation_sparse.py --save-dir results  # + miRNA layer, L1
+
+# Negative-selection screen: genes deletable in non-metastatic tumours but
+# spared from deletion in metastatic disease (candidate metastasis machinery):
+python scripts/14_metastasis_spared_deletions.py --save-dir results
 ```
 
 Worked results are written up in
 [`docs/nsclc_survival_screen.md`](docs/nsclc_survival_screen.md) (mRNA/miRNA
 survival + pathways) and
 [`docs/nsclc_multiomics_metastasis.md`](docs/nsclc_multiomics_metastasis.md)
-(copy-number, mutations, metastasis, and the constellation model).
+(copy-number, mutations, metastasis, and the constellation model), and
+[`docs/nsclc_metastasis_spared_deletions.md`](docs/nsclc_metastasis_spared_deletions.md)
+(the negative-selection screen for metastasis-required machinery).
 
 Or from Python:
 

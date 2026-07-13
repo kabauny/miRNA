@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from urllib.request import urlopen
 
 import _bootstrap  # noqa: F401
 import numpy as np
@@ -34,7 +33,7 @@ import pandas as pd
 from mirna_tcga import load_config
 from mirna_tcga.cbioportal import CBioPortalClient
 from mirna_tcga.cohorts import cohort_study_keys, nsclc_clinical
-from mirna_tcga.enrich import over_representation, parse_gmt
+from mirna_tcga.enrich import load_gene_sets, over_representation
 from mirna_tcga.integrate import sample_to_patient
 from mirna_tcga.layers import protein_coding_map, stream_expression
 from mirna_tcga.screen import cox_score_screen
@@ -45,26 +44,6 @@ DEFAULT_GENE_SETS = {
     "KEGG_2016": "https://raw.githubusercontent.com/zqfang/GSEApy/master/tests/extdata/enrichr.KEGG_2016.gmt",
     "Hallmark": "https://raw.githubusercontent.com/zqfang/GSEApy/master/tests/extdata/h.all.v7.0.symbols.gmt",
 }
-
-
-def load_gene_sets(specs: dict[str, str], cache_dir: Path) -> dict[str, set[str]]:
-    """Load (and disk-cache) GMT gene-set libraries from URLs or local paths."""
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    merged: dict[str, set[str]] = {}
-    for label, src in specs.items():
-        if src.startswith("http"):
-            cache = cache_dir / f"{label}.gmt"
-            if not cache.exists():
-                cache.write_bytes(urlopen(src, timeout=60).read())  # noqa: S310
-            text = cache.read_text()
-        else:
-            text = Path(src).read_text()
-        sets = parse_gmt(text)
-        # KEGG_2016 names carry a " Homo sapiens hsaNNNNN" suffix; trim it.
-        for name, genes in sets.items():
-            clean = name.split(" Homo sapiens ")[0].strip()
-            merged[f"{label}: {clean}"] = genes
-    return merged
 
 
 def main() -> None:

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from scipy.stats import chi2 as chi2_dist
 from scipy.stats import fisher_exact, norm, rankdata
 
 from .screen import benjamini_hochberg
@@ -71,6 +72,76 @@ def ranksum_screen(
     out["p"] = 2 * norm.sf(np.abs(out["z"].to_numpy()))
     out["q"] = benjamini_hochberg(out["p"].to_numpy())
     return out[["gene", "z", "auc", "p", "q"]].sort_values("p").set_index("gene")
+
+
+def cmh_depletion_screen(
+    B: pd.DataFrame,
+    group: pd.Series,
+    strata: pd.Series,
+    min_ref_freq: float = 0.03,
+) -> pd.DataFrame:
+    """Subtype-adjusted test for a binary feature being *depleted* in a group.
+
+    Motivating question: which genes are recurrently deep-deleted in the
+    reference group (``group == 0``, e.g. non-metastatic) yet **spared** from
+    deletion in the index group (``group == 1``, e.g. stage IV)? A gene whose
+    intact copy is required for metastasis should show this depletion.
+
+    Uses a Cochran-Mantel-Haenszel test stratified by ``strata`` (e.g. tumour
+    subtype), which is essential when the index group is unbalanced across strata
+    and is robust to the zero cells produced by "never deleted in the index
+    group". Only genes altered in >= ``min_ref_freq`` of the reference group are
+    tested (a gene must be *deletable* to be informatively spared).
+
+    Returns per gene: ``freq_ref`` / ``freq_idx`` (deletion frequency in each
+    group), ``n_idx`` (deletions in the index group), ``or_mh`` (MH odds ratio;
+    < 1 = depleted in the index group), one-sided depletion ``p``, and BH ``q``,
+    sorted by ``p``.
+    """
+    y = group.reindex(B.index).to_numpy()
+    st = strata.reindex(B.index).to_numpy()
+    Bv = B.to_numpy(dtype=float)
+    g1, g0 = (y == 1), (y == 0)
+
+    freq_ref = Bv[g0].mean(0)
+    freq_idx = Bv[g1].mean(0) if g1.sum() else np.zeros(Bv.shape[1])
+    n_idx = Bv[g1].sum(0)
+
+    num = np.zeros(Bv.shape[1])   # sum_k (a - E[a])
+    var = np.zeros(Bv.shape[1])
+    or_num = np.zeros(Bv.shape[1])
+    or_den = np.zeros(Bv.shape[1])
+    for s in np.unique(st):
+        m = st == s
+        n1, n0 = int((m & g1).sum()), int((m & g0).sum())
+        n = n1 + n0
+        if n1 == 0 or n0 == 0 or n < 2:
+            continue
+        a = Bv[m & g1].sum(0)          # deleted & index
+        b = Bv[m & g0].sum(0)          # deleted & reference
+        c, d = n1 - a, n0 - b
+        row1 = a + b                    # deleted (either group)
+        num += a - row1 * n1 / n
+        var += row1 * (c + d) * n1 * n0 / (n * n * (n - 1))
+        or_num += a * d / n
+        or_den += b * c / n
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        chi2 = (np.abs(num) - 0.5).clip(min=0) ** 2 / var
+        p_two = chi2_dist.sf(chi2, 1)
+        or_mh = or_num / or_den
+    # one-sided depletion (fewer deletions in the index group than expected)
+    p_dep = np.where(num < 0, p_two / 2, 1 - p_two / 2)
+
+    out = pd.DataFrame({
+        "gene": list(B.columns), "freq_ref": freq_ref, "freq_idx": freq_idx,
+        "n_idx": n_idx.astype(int), "or_mh": or_mh, "p": p_dep,
+    })
+    out = out[out["freq_ref"] >= min_ref_freq].replace([np.inf, -np.inf], np.nan).dropna(subset=["p"])
+    if out.empty:
+        return out.set_index("gene")
+    out["q"] = benjamini_hochberg(out["p"].to_numpy())
+    return out.sort_values("p").set_index("gene")
 
 
 def fisher_screen(B: pd.DataFrame, outcome: pd.Series) -> pd.DataFrame:

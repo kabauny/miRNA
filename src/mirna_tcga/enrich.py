@@ -12,12 +12,37 @@ self-contained -- no live enrichment web service is required.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Iterable, Mapping
+from urllib.request import urlopen
 
 import pandas as pd
 from scipy.stats import hypergeom
 
 from .screen import benjamini_hochberg
+
+
+def load_gene_sets(specs: Mapping[str, str], cache_dir: str | Path) -> dict[str, set[str]]:
+    """Load (and disk-cache) GMT gene-set libraries from URLs or local paths.
+
+    ``specs`` maps a library label to a ``.gmt`` URL or path. Each set is keyed
+    as ``"<label>: <set name>"``; a trailing " Homo sapiens hsaNNNNN" suffix
+    (Enrichr KEGG naming) is trimmed for readability.
+    """
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    merged: dict[str, set[str]] = {}
+    for label, src in specs.items():
+        if str(src).startswith("http"):
+            cache = cache_dir / f"{label}.gmt"
+            if not cache.exists():
+                cache.write_bytes(urlopen(src, timeout=60).read())  # noqa: S310
+            text = cache.read_text()
+        else:
+            text = Path(src).read_text()
+        for name, genes in parse_gmt(text).items():
+            merged[f"{label}: {name.split(' Homo sapiens ')[0].strip()}"] = genes
+    return merged
 
 
 def parse_gmt(text: str) -> dict[str, set[str]]:
