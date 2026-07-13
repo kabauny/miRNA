@@ -150,7 +150,11 @@ gain is **functional as a coordinated cis-dosage effect** but pins down what it 
 
 - **Coordinated over-expression.** Of the 782 measured 17q genes, **71 % are shifted
   up** in N+ stage II (vs 56 % genome-wide; whole-cohort 58 % vs 40 %). The arm gain
-  raises 17q transcription arm-wide.
+  raises 17q transcription arm-wide. Pulling the top-hit genes' actual expression
+  confirms it: all 14 are up in N+ by **log2FC ≈ 0.1–0.5** (~1.1–1.4×, the modest
+  ratio expected from a single-copy dosage gain), and they are **co-expressed as a
+  block** (mean pairwise Spearman r ≈ 0.50) — one coordinated program, not
+  scattered noise.
 - **ERBB2 / HER2 is *not* the driver.** Despite being the famous 17q oncogene, ERBB2
   is unchanged (z = 0.18 stage II, z = −0.02 whole-cohort; rank ~520/782 on the arm).
   Focal HER2 amplification is not what this is.
