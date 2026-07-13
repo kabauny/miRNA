@@ -71,6 +71,31 @@ consistent with the hypothesis that intact 8p23 carries machinery permissive for
 > estimate is still fragile; treat it as a strengthened *candidate*, not a
 > confirmed hit.
 
+### Strict "never deleted" re-examined — the 0/33 was a power artifact
+
+`scripts/16_never_deleted_stage_iv.py` asks the literal question — which deletable
+genes have **zero** deep deletions in stage IV? — on the 126-patient cohort. The
+answer: **essentially none.** Every gene deletable in ≥3% of non-metastatic
+tumours is now deleted in ≥1 stage IV patient; the strictly-never-deleted count is
+0 at every floor ≥3% (and the 4 genes at the 2% floor are expected only ~2.5 hits,
+so their zeros are unsurprising).
+
+| Deletability floor | genes deletable | never-deleted in stage IV | expected hits |
+|---|---|---|---|
+| 3% | 291 | **0** | ~3.8 |
+| 4% | 273 | **0** | ~5.0 |
+| 6% | 87 | **0** | ~7.6 |
+
+The original 8p23 "0/33" calls became **depletion, not absence**: `ARHGEF10`
+0/33 → **3/126**; the `XKR6/SOX7/PINX1/MSRA` core → **1/126** (still OR ≈ 0.10);
+`CSMD1` (13.5% in M0) → **9/126**. Two caveats the small cohort hid are now
+visible: (1) these 8p genes are deleted heavily in **LUSC** (e.g. CSMD1: 21 LUAD /
+70 LUSC in M0) while stage IV is 72% LUAD, so subtype drives part of the apparent
+sparing; (2) correcting FDR **genome-wide** (not just within the 273 deletable
+genes) leaves the block at subtype-adjusted q ≈ 0.66 — the per-gene depletion
+p (~0.006 for XKR6) is unchanged, only the correction universe differs. So "never
+deleted" does not survive real power; it is a weak, LUAD-concentrated *depletion*.
+
 ### Pathway level
 
 The most-spared gene sets (lower deletion burden in metastatic tumours), while

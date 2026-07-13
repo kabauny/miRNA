@@ -55,6 +55,7 @@ scripts/             # runnable pipeline examples
   13_constellation_sparse.py     # driver-focused L1 model + miRNA layer (constellation)
   14_metastasis_spared_deletions.py # genes never deleted in metastasis (spared machinery)
   15_pancancer_spared_deletions.py  # does the spared-deletion signal generalize? (LUAD-specific)
+  16_never_deleted_stage_iv.py      # strict "never deleted in stage IV" re-run on the 126-patient cohort
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
