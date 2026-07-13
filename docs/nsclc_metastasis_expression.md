@@ -47,10 +47,21 @@ stage I tumours (stage I / N0 / M0, ≥2 yr recurrence-free) **does not** rescue
 signal — still zero genes, best q ≈ 0.41, top AUCs ~0.55–0.65 (a faint
 proliferation echo: `TYMS`, `KNL1`, `ARHGAP11B`, but nowhere near significant).
 
+> **Subtype-specific check (and a cautionary tale).** M1 is 72 % LUAD while the
+> true-stage-I control is LUSC-rich (49 % LUAD), and LUSC is intrinsically more
+> proliferative — so a *pooled* median fold-change reverses sign (Simpson's
+> paradox). A curated proliferation **panel** run **LUAD-only** looked promising
+> (FOXM1/MKI67/TYMS up, 8/14 at panel-FDR). But that was selection bias (a
+> co-regulated module tested against its own FDR): the **unbiased genome-wide
+> LUAD-only** DE (`--studies luad`) is still **null — 0 genes at q<0.05, best
+> q ≈ 0.36, no proliferation pathway**. The subtype confound is real, but removing
+> it does not uncover a distant-met signature; the LUAD-only lean is nominal at
+> best. Panel-FDR over hand-picked genes is not genome-wide evidence.
+
 **Distant-metastatic capacity is not encoded in the bulk primary-tumour mRNA** of
-TCGA NSCLC — robust to the reference. Consistent with distant spread depending on
-rare subclones, the microenvironment, or later stochastic events that bulk primary
-RNA does not capture.
+TCGA NSCLC — robust to the reference *and to per-subtype analysis*. Consistent with
+distant spread depending on rare subclones, the microenvironment, or later
+stochastic events that bulk primary RNA does not capture.
 
 ## Result 2 — nodal metastasis is a strong proliferation signal…
 

@@ -38,7 +38,7 @@ from mirna_tcga import load_config
 from mirna_tcga.associate import ranksum_screen
 from mirna_tcga.biotab import distant_metastasis_labels, true_stage_i_vs_distant
 from mirna_tcga.cbioportal import CBioPortalClient
-from mirna_tcga.cohorts import cohort_study_keys, nsclc_clinical
+from mirna_tcga.cohorts import cohort_study_keys, combined_clinical, nsclc_clinical  # noqa: F401
 from mirna_tcga.config import resolve_path
 from mirna_tcga.endpoints import (
     distant_metastasis,
@@ -93,6 +93,10 @@ def main() -> None:
     ap.add_argument("--config", default=None)
     ap.add_argument("--fdr", type=float, default=0.05, help="BH q threshold")
     ap.add_argument("--max-genes", type=int, default=None, help="cap universe (quick run)")
+    ap.add_argument("--studies", nargs="+", default=None,
+                    help="study keys to analyse (default: the nsclc cohort, luad+lusc). "
+                         "Pass a single subtype (e.g. --studies luad) to run within one "
+                         "subtype -- useful when an effect is subtype-specific.")
     ap.add_argument("--biotab-root", default=None,
                     help="local BCR Biotab GDCdata dir (default: config biotab.root if present)")
     ap.add_argument("--save-dir", default=None)
@@ -100,10 +104,11 @@ def main() -> None:
 
     cfg = load_config(args.config)
     client = CBioPortalClient(**cfg.cbioportal)
-    keys = cohort_study_keys(cfg, "nsclc")
+    keys = args.studies or cohort_study_keys(cfg, "nsclc")
 
-    clin = nsclc_clinical(client, cfg, patient_level=True)
+    clin = combined_clinical(client, cfg, keys, patient_level=True)
     subtype = clin.set_index("patientId")["cohort"]
+    print(f"Cohort: {', '.join(k.upper() for k in keys)}")
     dmet = distant_metastasis(clin)
     nmet = nodal_metastasis(clin)
 
