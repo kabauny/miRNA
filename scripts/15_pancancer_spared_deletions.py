@@ -30,14 +30,21 @@ import pandas as pd
 
 from mirna_tcga import load_config
 from mirna_tcga.associate import cmh_depletion_screen, ranksum_screen
+from mirna_tcga.biotab import distant_metastasis_labels
 from mirna_tcga.cbioportal import CBioPortalClient
-from mirna_tcga.endpoints import distant_metastasis
+from mirna_tcga.config import resolve_path
+from mirna_tcga.endpoints import distant_metastasis, distant_metastasis_biotab
 from mirna_tcga.integrate import sample_to_patient
 from mirna_tcga.layers import TRUNCATING_CLASSES, _binary_matrix, protein_coding_map
 from mirna_tcga.panels import CHR8P23_BLOCK
 
 DEFAULT_STUDIES = ["blca", "coadread", "kirc", "stad", "luad", "lusc", "skcm"]
 SUFFIX = "_tcga_pan_can_atlas_2018"
+
+# cBioPortal study key -> local BCR Biotab folder code(s) (TCGA-<CODE>). Most map
+# 1:1; the merged colorectal study maps to COAD (the local download has no READ),
+# and cohorts with no local Biotab (e.g. skcm) fall back to the cBioPortal M1 call.
+BIOTAB_ALIASES = {"coadread": ["coad"]}
 
 
 def _tumor(s):
@@ -76,6 +83,10 @@ def main() -> None:
     ap.add_argument("--min-ref-freq", type=float, default=0.03)
     ap.add_argument("--protection", action="store_true",
                     help="count deletion OR truncating mutation as inactivation")
+    ap.add_argument("--biotab-root", default=None,
+                    help="path to local BCR Biotab GDCdata dir; enriches each cohort's "
+                         "distant-met endpoint where a matching download exists "
+                         "(default: config biotab.root if it exists on disk)")
     ap.add_argument("--save-dir", default=None)
     args = ap.parse_args()
 
@@ -85,6 +96,13 @@ def main() -> None:
     mode = "inactivation (del + truncating mut)" if args.protection else "deep deletion"
     print(f"Pan-cancer spared-{mode} screen across: {', '.join(args.studies)}\n")
 
+    biotab_root = args.biotab_root or (cfg.raw.get("biotab") or {}).get("root")
+    biotab_root = resolve_path(biotab_root) if biotab_root else None
+    if biotab_root and biotab_root.exists():
+        print(f"Biotab enrichment: on ({biotab_root})\n")
+    else:
+        biotab_root = None
+
     mats, ys, cancer, block_rows = [], [], [], []
     for st in args.studies:
         study = st + SUFFIX
@@ -93,6 +111,12 @@ def main() -> None:
             print(f"  {st}: no clinical -- skipped")
             continue
         dm = distant_metastasis(clin)
+        if biotab_root is not None:
+            bt = distant_metastasis_labels(biotab_root, BIOTAB_ALIASES.get(st, [st]))
+            if not bt.empty:
+                n0 = int(dm.sum())
+                dm = distant_metastasis_biotab(clin, bt)
+                print(f"  {st.upper():9s} biotab: M1 {n0} -> {int(dm.sum())}")
         B = study_inactivation(client, study, id2sym, args.protection)
         common = B.index.intersection(dm.index)
         if len(common) < 20 or dm.loc[common].sum() < 5:

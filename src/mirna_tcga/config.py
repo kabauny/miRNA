@@ -14,6 +14,20 @@ def _project_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def resolve_path(path: str | Path) -> Path:
+    """Resolve ``path`` for reading local data files.
+
+    Absolute paths pass through. A relative path is tried against the current
+    working directory first, then the repository root, so config values like
+    ``TCGA/GDCdata`` work whether a script is run from the repo root or elsewhere.
+    """
+    p = Path(path)
+    if p.is_absolute() or p.exists():
+        return p
+    root = _project_root() / p
+    return root if root.exists() else p
+
+
 @dataclass
 class Config:
     """Typed view over the YAML config with convenient id-builder helpers."""

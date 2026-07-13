@@ -23,6 +23,12 @@ results/
 *.parquet
 !config.yaml
 
+# Raw TCGA download (BCR Biotab clinical, GDCdata, .RData snapshots) -- large,
+# fetched locally via TCGAbiolinks/GDC, never committed. mirna_tcga.biotab reads
+# it in place; config biotab.root points here.
+TCGA/
+*.RData
+
 # Editors / OS
 .idea/
 .vscode/

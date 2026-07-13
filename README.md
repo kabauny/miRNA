@@ -34,6 +34,7 @@ src/mirna_tcga/      # the package
   screen.py          # genome-wide survival screen (vectorized Cox score test)
   associate.py       # binary-endpoint screens (stratified rank-sum, Fisher)
   endpoints.py       # metastasis endpoints (distant M1, nodal N+) from clinical
+  biotab.py          # TCGA BCR Biotab clinical-supplement loader (richer distant-met label)
   enrich.py          # pathway over-representation (GMT + hypergeometric)
   layers.py          # multi-omic loaders (expression, deletions, mutations)
   mirbase.py         # MIMAT accession -> hsa-miR name lookup (mature.fa)
@@ -53,7 +54,7 @@ scripts/             # runnable pipeline examples
   12_constellation_model.py      # cross-validated multi-omic OS / metastasis models
   13_constellation_sparse.py     # driver-focused L1 model + miRNA layer (constellation)
   14_metastasis_spared_deletions.py # genes never deleted in metastasis (spared machinery)
-  15_pancancer_spared_deletions.py  # does the spared-deletion signal generalize? (it doesn't)
+  15_pancancer_spared_deletions.py  # does the spared-deletion signal generalize? (LUAD-specific)
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
@@ -96,7 +97,10 @@ python scripts/12_constellation_model.py --save-dir results
 python scripts/13_constellation_sparse.py --save-dir results  # + miRNA layer, L1
 
 # Negative-selection screen: genes deletable in non-metastatic tumours but
-# spared from deletion in metastatic disease (candidate metastasis machinery):
+# spared from deletion in metastatic disease (candidate metastasis machinery).
+# Auto-enriches the distant-metastasis label from local BCR Biotab clinical
+# supplements (config biotab.root / --biotab-root) -- ~33 -> 126 metastatic in
+# NSCLC -- falling back to pathologic M1 if no Biotab folder is present:
 python scripts/14_metastasis_spared_deletions.py --save-dir results
 python scripts/15_pancancer_spared_deletions.py --save-dir results  # generalize across cancers
 python scripts/15_pancancer_spared_deletions.py --protection        # del OR truncating mutation
@@ -160,6 +164,11 @@ https://code.claude.com/docs/en/claude-code-on-the-web.
 - **miRNA expression** → UCSC Xena TCGA hub (`mirna_tcga.xena`), because
   cBioPortal does not carry miRNA for the PanCancer Atlas studies. Both Xena
   hubs used here (`tcga`, `gdc`) serve genuine TCGA data.
+- **Richer clinical (metastasis)** → TCGA **BCR Biotab** clinical supplements
+  (`mirna_tcga.biotab`), a local GDC download (`TCGAbiolinks::GDCdownload`,
+  `data.format = "BCR Biotab"`) kept under the git-ignored `TCGA/` folder and
+  pointed at by `config biotab.root`. Adds clinical M stage + follow-up
+  `Distant Metastasis` events that cBioPortal's pathologic-M field lacks.
 
 ## Caveats
 

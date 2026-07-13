@@ -33,9 +33,15 @@ import pandas as pd
 
 from mirna_tcga import load_config
 from mirna_tcga.associate import cmh_depletion_screen, ranksum_screen
+from mirna_tcga.biotab import distant_metastasis_labels
+from mirna_tcga.config import resolve_path
 from mirna_tcga.cbioportal import CBioPortalClient
 from mirna_tcga.cohorts import cohort_study_keys, nsclc_clinical
-from mirna_tcga.endpoints import distant_metastasis, nodal_metastasis
+from mirna_tcga.endpoints import (
+    distant_metastasis,
+    distant_metastasis_biotab,
+    nodal_metastasis,
+)
 from mirna_tcga.enrich import load_gene_sets, over_representation
 from mirna_tcga.integrate import sample_to_patient
 from mirna_tcga.layers import deletion_matrix, protein_coding_map
@@ -120,6 +126,9 @@ def main() -> None:
     ap.add_argument("--config", default=None)
     ap.add_argument("--min-ref-freq", type=float, default=0.04,
                     help="min deep-deletion frequency in M0 to call a gene 'deletable'")
+    ap.add_argument("--biotab-root", default=None,
+                    help="path to local BCR Biotab GDCdata dir; enriches the distant-met "
+                         "endpoint (default: config biotab.root if it exists on disk)")
     ap.add_argument("--save-dir", default=None)
     args = ap.parse_args()
 
@@ -130,6 +139,24 @@ def main() -> None:
     clin = nsclc_clinical(client, cfg, patient_level=True)
     dmet, nmet = distant_metastasis(clin), nodal_metastasis(clin)
 
+    # Enrich distant metastasis with local BCR Biotab clinical supplements if
+    # available -- lifts the confirmed-metastatic set from ~33 (pathologic M1) to
+    # ~127 (clinical M1 + follow-up 'Distant Metastasis'). Paths may be given
+    # relative to the repo root.
+    biotab_root = args.biotab_root or (cfg.raw.get("biotab") or {}).get("root")
+    dmet_name = "distant met (M1)"
+    if biotab_root:
+        root = resolve_path(biotab_root)
+        if root.exists():
+            bt = distant_metastasis_labels(root, keys)
+            n_before = int(dmet.sum())
+            dmet = distant_metastasis_biotab(clin, bt)
+            print(f"Biotab-enriched distant met: {n_before} -> {int(dmet.sum())} "
+                  f"positive of {dmet.size} patients (from {root})")
+            dmet_name = "distant met (biotab)"
+        else:
+            print(f"[warn] biotab root {biotab_root!r} not found; using pathologic-M1 endpoint")
+
     id2sym = protein_coding_map(client)
     print("Fetching deep deletions (HOMDEL) genome-wide ...")
     delB, sub = deletion_matrix(client, cfg, id2sym, keys)
@@ -139,7 +166,7 @@ def main() -> None:
     cache = Path(args.save_dir or ".") / "genesets_cache"
     gene_sets = load_gene_sets(cfg.raw.get("gene_sets") or DEFAULT_GENE_SETS, cache)
 
-    run_endpoint(delP, subP, dmet, "distant met (M1)", gene_sets, args.min_ref_freq, args.save_dir)
+    run_endpoint(delP, subP, dmet, dmet_name, gene_sets, args.min_ref_freq, args.save_dir)
     run_endpoint(delP, subP, nmet, "nodal met (N+)", gene_sets, args.min_ref_freq, args.save_dir)
     if args.save_dir:
         print(f"\nWrote results -> {args.save_dir}/")

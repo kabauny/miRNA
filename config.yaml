@@ -20,6 +20,15 @@ xena_mirna:
 # miRBase mature.fa for MIMAT-accession -> hsa-miR name lookup (URL or local path).
 mirbase_mature_fa: "https://raw.githubusercontent.com/nf-core/test-datasets/smrnaseq/reference/mature.fa"
 
+# Local BCR Biotab clinical supplements (from GDCdownload with
+# data.type="Clinical Supplement", data.format="BCR Biotab"). Used to enrich the
+# distant-metastasis endpoint far beyond pathologic M1 -- clinical M1 + follow-up
+# 'Distant Metastasis' new-tumor events lift the confirmed-metastatic NSCLC set
+# from ~33 to ~127 (see mirna_tcga.biotab). The download is large and NOT
+# committed; point this at the local GDCdata dir. null => pathologic-M1 only.
+biotab:
+  root: "TCGA/GDCdata"
+
 # TCGA lung studies on cBioPortal (PanCancer Atlas).
 studies:
   luad: "luad_tcga_pan_can_atlas_2018"
