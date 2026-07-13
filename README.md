@@ -60,6 +60,7 @@ scripts/             # runnable pipeline examples
   17_metastasis_expression_diff.py  # differential expression: metastatic vs non-metastatic (incl. true-stage-I reference)
   18_metastasis_cnv_diff.py         # two-sided CNV diff (deletions + amplifications) across the same clean contrasts
   19_metastasis_segment_cnv.py      # segment-level CNV: fraction-genome-altered + arm-level gains/losses vs metastasis
+  20_arm_gene_drilldown.py          # drill an arm-level CNV hit (e.g. 17q) down to genes: cis-dosage? which genes? (needs [idmap])
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)

@@ -139,11 +139,30 @@ within stage II (p=0.17), and two of the three arm gains (7q, 2p) drop out.
 
 The exception is **17q gain**, the one copy-number feature associated with nodal
 status **independent of stage** — significant whole-cohort (q=9e-4) *and* within
-stage II (q=0.010, AUC≈0.62). It is a broad, gene-dense arm (contains `ERBB2` and
-the 17q proliferation/instability genes), so this is an arm-level association, not
-a single-driver call, and the effect is modest — but it is the only molecular
-feature in this whole analysis that separates metastatic from non-metastatic while
-holding stage constant.
+stage II (q=0.010, AUC≈0.62).
+
+## 17q resolved to genes — arm dosage, not ERBB2 (script 20)
+
+Drilling the 17q arm gain down to genes (`scripts/20_arm_gene_drilldown.py`, which
+maps the script-17 DE tables to chromosome arms via MyGene cytobands) shows the DNA
+gain is **functional as a coordinated cis-dosage effect** but pins down what it is
+— and isn't:
+
+- **Coordinated over-expression.** Of the 782 measured 17q genes, **71 % are shifted
+  up** in N+ stage II (vs 56 % genome-wide; whole-cohort 58 % vs 40 %). The arm gain
+  raises 17q transcription arm-wide.
+- **ERBB2 / HER2 is *not* the driver.** Despite being the famous 17q oncogene, ERBB2
+  is unchanged (z = 0.18 stage II, z = −0.02 whole-cohort; rank ~520/782 on the arm).
+  Focal HER2 amplification is not what this is.
+- **17p / TP53 is not co-lost.** 17p is copy-neutral (arm z = −0.18, p = 0.86), so
+  this is a **selective 17q gain, not isochromosome 17q** — not a TP53-deletion event.
+- **What's up is proliferation / biogenesis**: `TK1`, `BIRC5`, `KPNA2`, `SKA2`,
+  mitochondrial ribosomal proteins (`MRPL12/45/58`, `MRPS7`), proteasome (`PSMB3`,
+  `PSMC5`), `NME1`, `PYCR1` — the same program as the whole-cohort proliferation
+  signature, here carried by arm dosage.
+- **No single 17q gene clears FDR at matched stage** (best q ≈ 0.10) — confirming
+  this is a genuine *arm-level* dosage effect, not one driver gene. It is why the
+  arm-level CNV test (q ≈ 0.01) sees it while the per-gene screens do not.
 
 ## Conclusion
 
