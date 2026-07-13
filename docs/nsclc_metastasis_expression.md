@@ -162,6 +162,17 @@ The exception is **17q gain**, the one copy-number feature associated with nodal
 status **independent of stage** — significant whole-cohort (q=9e-4) *and* within
 stage II (q=0.010, AUC≈0.62).
 
+> **17q is LUSC-specific, not LUAD (`--studies` split).** Splitting the segment
+> analysis by subtype: in **LUSC** 17q is the **top arm** (rank 1/39) both
+> whole-cohort (z=4.61, q=2e-4) and — crucially — **within stage II** (z=3.64,
+> q=0.011, AUC=0.67), so it survives stage matching. In **LUAD** 17q is *not*
+> differential (q=0.46 whole, q=0.61 stage II, rank ~13/39) despite comparable
+> sample size — a real subtype difference, not power. 17p (TP53's arm) stays
+> copy-neutral in both. This is biologically coherent — 17q/3q gains are hallmark
+> **squamous** copy-number events — and it means the two durable nodal signals
+> *dissociate by subtype*: the proliferation *expression* program is LUAD-enriched,
+> while the stage-independent 17q *copy-number* gain is LUSC-specific.
+
 ## 17q resolved to genes — arm dosage, not ERBB2 (script 20)
 
 Drilling the 17q arm gain down to genes (`scripts/20_arm_gene_drilldown.py`, which
@@ -197,11 +208,13 @@ Across expression and copy number, the same result — with one small exception:
   gene-level CNV, or segment FGA / arm-level), against a heterogeneous M0 reference
   *or* a clean true-stage-I indolent control. Distant-metastatic primaries are not
   even more genomically unstable.
-- **Nodal metastasis** — a proliferation *expression* signature and higher CNV
-  instability (FGA) whole-cohort, both **explained by tumour stage** (they collapse
-  within stage II). The lone survivor is **17q gain**, associated with nodal status
-  even at matched stage (q≈0.01) — modest, arm-level, but the only stage-independent
-  molecular correlate found.
+- **Nodal metastasis** — a proliferation *expression* signature (LUAD-enriched,
+  present in both subtypes) and higher CNV instability (FGA) whole-cohort, both
+  **explained by tumour stage** (they collapse within stage II). The lone survivor
+  is **17q gain**, associated with nodal status even at matched stage (q≈0.01) —
+  modest, arm-level, and **LUSC-specific** (top arm in LUSC, absent in LUAD). The
+  two durable nodal signals thus dissociate by subtype: LUAD proliferation
+  (expression) vs LUSC 17q gain (copy number).
 
 Net: in TCGA NSCLC, **metastatic status leaves essentially no clean molecular
 imprint on the bulk primary tumour beyond markers of tumour stage / aggressiveness**

@@ -29,7 +29,7 @@ from mirna_tcga import load_config
 from mirna_tcga.associate import ranksum_screen
 from mirna_tcga.biotab import distant_metastasis_labels, true_stage_i_vs_distant
 from mirna_tcga.cbioportal import CBioPortalClient
-from mirna_tcga.cohorts import cohort_study_keys, nsclc_clinical
+from mirna_tcga.cohorts import cohort_study_keys, combined_clinical, nsclc_clinical  # noqa: F401
 from mirna_tcga.config import resolve_path
 from mirna_tcga.endpoints import (
     distant_metastasis,
@@ -83,15 +83,19 @@ def main() -> None:
     ap.add_argument("--fdr", type=float, default=0.05)
     ap.add_argument("--fga-threshold", type=float, default=0.2,
                     help="|log2 ratio| above which a segment counts as altered")
+    ap.add_argument("--studies", nargs="+", default=None,
+                    help="study keys (default: nsclc = luad+lusc); pass one subtype "
+                         "to test whether an arm signal is subtype-specific")
     ap.add_argument("--biotab-root", default=None)
     ap.add_argument("--save-dir", default=None)
     args = ap.parse_args()
 
     cfg = load_config(args.config)
     client = CBioPortalClient(**cfg.cbioportal)
-    keys = cohort_study_keys(cfg, "nsclc")
+    keys = args.studies or cohort_study_keys(cfg, "nsclc")
+    print(f"Cohort: {', '.join(k.upper() for k in keys)}")
 
-    clin = nsclc_clinical(client, cfg, patient_level=True)
+    clin = combined_clinical(client, cfg, keys, patient_level=True)
     dmet = distant_metastasis(clin)
     contrasts = [("nodal N+ vs N0", nodal_metastasis(clin)),
                  ("nodal N+ vs N0, stage II", nodal_metastasis_within_stage(clin, "II"))]
