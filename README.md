@@ -51,6 +51,7 @@ scripts/             # runnable pipeline examples
   10_mirna_survival_screen.py    # genome-wide miRNA OS screen (Xena + cBioPortal OS)
   11_cnv_mutation_screen.py      # deep-deletion & mutation screens vs OS + metastasis
   12_constellation_model.py      # cross-validated multi-omic OS / metastasis models
+  13_constellation_sparse.py     # driver-focused L1 model + miRNA layer (constellation)
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
@@ -90,6 +91,7 @@ python scripts/10_mirna_survival_screen.py           # miRNA screen (needs Xena 
 # cross-validated multi-omic model of the two outcomes:
 python scripts/11_cnv_mutation_screen.py --save-dir results
 python scripts/12_constellation_model.py --save-dir results
+python scripts/13_constellation_sparse.py --save-dir results  # + miRNA layer, L1
 ```
 
 Worked results are written up in

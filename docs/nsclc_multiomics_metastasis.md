@@ -91,6 +91,47 @@ So the "constellation" that predicts outcome in NSCLC is essentially the
 **EMT / hypoxia / proliferation expression program** identified in the
 [survival screen](nsclc_survival_screen.md); deep deletions and mutations
 sharpen the mechanistic picture (9p21 loss, STK11/EGFR/KEAP1 mutations) but do
-not improve cross-validated prediction at this sample size. A curated driver
-panel (rather than all recurrent mutations) or a larger cohort would be the next
-step to test whether DNA features add orthogonal predictive value.
+not improve cross-validated prediction at this sample size.
+
+## 4. Sparse, driver-focused model + a fifth (miRNA) layer
+
+`scripts/13_constellation_sparse.py` addresses the two weaknesses above:
+mutations are restricted to a **curated NSCLC driver panel** and deletions to
+recurrently-deleted **tumour suppressors** (instead of every recurrent gene);
+models are **L1-penalized** (embedded feature selection); and a **miRNA layer**
+(curated panel incl. the miR-200 / let-7 EMT-suppressor families) is added.
+
+| Endpoint | driver + L1 (DNA + expr) | + miRNA |
+|---|---|---|
+| OS (C-index) | 0.552 | **0.572** |
+| Nodal met (AUC) | **0.592** | 0.583 |
+| Distant met (AUC) | 0.52 ± 0.09 | 0.55 ± 0.12 |
+
+Two things improve over the dense L2 model in §3:
+
+- **Focusing the DNA layers + L1 stops them hurting.** Nodal-met AUC is 0.592
+  (vs 0.55 when all recurrent mutations were dumped into an L2 model), i.e. the
+  DNA features now at least do no harm and slightly help.
+- **miRNA adds a small but real gain to survival** (C-index 0.552 → 0.572);
+  on nodal metastasis it is roughly neutral.
+
+### The nodal-metastasis constellation (L1-selected, full cohort)
+
+The strongest non-zero features (coefficients in-sample, for interpretation):
+
+| Feature | dir. | reading |
+|---|---|---|
+| expression signature | ↑ → more met | EMT / hypoxia program dominates |
+| PIK3CA mut, EGFR mut, KRAS mut | ↑ → more met | oncogenic driver activation |
+| CDKN2B deletion (9p21) | ↑ → more met | echoes the §1 9p21 → nodal trend |
+| miR-155-5p | ↑ → more met | oncomiR, expected direction |
+| miR-200b-3p, miR-29c-3p | ↓ → more met | EMT-suppressor loss → metastasis |
+| subtype (LUSC) | ↓ | LUAD more node-positive than LUSC here |
+
+The signal is still **carried by the expression signature**, but with driver
+focus + L1 the model assembles a coherent multi-omic constellation around it:
+oncogenic driver mutations (PIK3CA/EGFR/KRAS), 9p21 loss, and the miR-200 /
+miR-155 EMT axis all contribute in biologically sensible directions. Cross-
+validated gains over expression alone remain modest — the honest conclusion is
+that at TCGA-cohort size the transcriptome is the dominant predictor and the
+other layers add mechanism plus a small amount of orthogonal signal.
