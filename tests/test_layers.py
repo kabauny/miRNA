@@ -46,9 +46,10 @@ class FakeClient:
     def mutation_events(self, profile, entrez, sample_list):
         if profile == "luad_mut":
             return pd.DataFrame({
-                "sampleId": ["TCGA-1-01", "TCGA-2-01"],
-                "entrezGeneId": [2, 2],
-                "mutationType": ["Missense_Mutation", "Silent"],  # silent dropped
+                "sampleId": ["TCGA-1-01", "TCGA-2-01", "TCGA-1-01"],
+                "entrezGeneId": [2, 2, 1],
+                # missense (kept for non-silent), silent (dropped), nonsense (truncating)
+                "mutationType": ["Missense_Mutation", "Silent", "Nonsense_Mutation"],
             })
         return pd.DataFrame()
 
@@ -69,6 +70,12 @@ def test_mutation_matrix_excludes_silent():
     B, sub = mutation_matrix(FakeClient(), FakeCfg(), ID2SYM, ["luad", "lusc"])
     assert B.loc["TCGA-1-01", "BBB"] == 1     # missense kept
     assert B.loc["TCGA-2-01", "BBB"] == 0     # silent dropped -> not flagged
+
+
+def test_mutation_matrix_truncating_only():
+    B, _ = mutation_matrix(FakeClient(), FakeCfg(), ID2SYM, ["luad"], truncating_only=True)
+    assert B.loc["TCGA-1-01", "AAA"] == 1     # nonsense kept
+    assert "BBB" not in B.columns or B.loc["TCGA-1-01", "BBB"] == 0  # missense excluded
 
 
 def test_stream_expression_log2_and_concatenates_studies():

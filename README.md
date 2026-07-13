@@ -53,6 +53,7 @@ scripts/             # runnable pipeline examples
   12_constellation_model.py      # cross-validated multi-omic OS / metastasis models
   13_constellation_sparse.py     # driver-focused L1 model + miRNA layer (constellation)
   14_metastasis_spared_deletions.py # genes never deleted in metastasis (spared machinery)
+  15_pancancer_spared_deletions.py  # does the spared-deletion signal generalize? (it doesn't)
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
@@ -97,6 +98,8 @@ python scripts/13_constellation_sparse.py --save-dir results  # + miRNA layer, L
 # Negative-selection screen: genes deletable in non-metastatic tumours but
 # spared from deletion in metastatic disease (candidate metastasis machinery):
 python scripts/14_metastasis_spared_deletions.py --save-dir results
+python scripts/15_pancancer_spared_deletions.py --save-dir results  # generalize across cancers
+python scripts/15_pancancer_spared_deletions.py --protection        # del OR truncating mutation
 ```
 
 Worked results are written up in

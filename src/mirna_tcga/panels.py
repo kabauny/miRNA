@@ -32,3 +32,12 @@ DELETION_TSGS = [
     "CDKN2A", "CDKN2B", "MTAP", "PTEN", "RB1", "STK11", "SMAD4", "NF1",
     "ATM", "PTPRD", "FAT1", "LRP1B", "WWOX", "MACROD2", "CSMD1", "PARK2",
 ]
+
+# Chromosome 8p23 co-deletion block. In NSCLC this locus is deletable in
+# non-metastatic tumours but spared from deletion in metastatic disease
+# (scripts/14) -- a candidate metastasis-permissive region to test elsewhere.
+CHR8P23_BLOCK = [
+    "ARHGEF10", "XKR6", "DLGAP2", "MSRA", "SOX7", "PINX1", "C8ORF74", "FBXO25",
+    "MFHAS1", "CLN8", "KBTBD11", "MYOM2", "TDRP", "ZNF596", "ERICH1", "MTMR9",
+    "PPP1R3B", "BLK", "CSMD1",
+]

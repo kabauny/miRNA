@@ -21,6 +21,13 @@ SILENT_CLASSES = {
     "silent", "3'utr", "5'utr", "3'flank", "5'flank", "intron", "igr", "rna",
 }
 
+# Truncating / clearly loss-of-function mutation classes. Used when "inactivated"
+# should mean gene knockout (comparable to a deep deletion), not any coding change.
+TRUNCATING_CLASSES = {
+    "nonsense_mutation", "frame_shift_del", "frame_shift_ins", "splice_site",
+    "nonstop_mutation", "translation_start_site", "splice_region",
+}
+
 
 def protein_coding_map(client) -> dict[int, str]:
     """``{entrezGeneId: hugoGeneSymbol}`` for all protein-coding genes."""
@@ -75,15 +82,22 @@ def deletion_matrix(client, cfg, id2sym, study_keys):
     return B, pd.Series(subtype)
 
 
-def mutation_matrix(client, cfg, id2sym, study_keys):
-    """samples x genes 0/1 non-silent mutation matrix + per-sample subtype."""
+def mutation_matrix(client, cfg, id2sym, study_keys, truncating_only: bool = False):
+    """samples x genes 0/1 mutation matrix + per-sample subtype.
+
+    By default flags any non-silent mutation; with ``truncating_only`` keeps only
+    clearly loss-of-function classes (nonsense / frameshift / splice / nonstop),
+    i.e. gene knockouts comparable to a deep deletion.
+    """
     entrez = list(id2sym)
     flags, subtype = [], {}
     for key in study_keys:
         samples = client.sample_list_ids(cfg.sequenced_samples_list(key))
         muts = client.mutation_events(cfg.mutation_profile(key), entrez, cfg.sequenced_samples_list(key))
         if not muts.empty and "mutationType" in muts:
-            muts = muts[~muts["mutationType"].astype(str).str.lower().isin(SILENT_CLASSES)]
+            mtype = muts["mutationType"].astype(str).str.lower()
+            muts = muts[mtype.isin(TRUNCATING_CLASSES)] if truncating_only \
+                else muts[~mtype.isin(SILENT_CLASSES)]
         flags.append(_binary_matrix(muts, samples, id2sym))
         subtype.update({s: key.upper() for s in samples})
     B = pd.concat(flags, axis=0).fillna(0).astype("int8") if flags else pd.DataFrame()

@@ -80,3 +80,51 @@ suggestive:
   MSK-MET / MET500), which contains far more true metastatic samples than TCGA's
   resected primaries. The machinery here (`endpoints`, `cmh_depletion_screen`,
   `pathway_burden`) transfers directly.
+
+## Does it generalize? Pan-cancer test (it does not)
+
+`scripts/15_pancancer_spared_deletions.py` runs the same negative-selection
+screen across the TCGA cohorts that actually contain metastatic patients —
+bladder (BLCA, **135** M1), colorectal (COADREAD, 84), kidney (KIRC, 84), stomach
+(STAD, 45), plus lung and melanoma — pooled and stratified by cancer type
+(403 metastatic / 2,815 patients). These cohorts have far more metastatic disease
+than lung's ~33, so this is the properly-powered test.
+
+**The 8p23-sparing signal does not replicate — it reverses.** Per-cancer
+8p23-block deep-deletion rate (M0 → M1):
+
+| Cancer | M1 n | M0 → M1 8p23 deletion |
+|---|---|---|
+| LUAD | 26 | 8.4% → **3.8%** (spared — the original signal) |
+| COADREAD | 84 | 8.4% → **19.0%** (more deleted) |
+| BLCA | 135 | 7.5% → **11.9%** (more) |
+| STAD | 45 | 3.8% → **11.1%** (more) |
+| SKCM | 22 | 0.9% → **4.5%** (more) |
+| KIRC | 84 | 2.0% → 1.2% (~equal) |
+
+Pooled (stratified by cancer type), 8p23 is deep-deleted **more** in metastatic
+tumours, not less: block-level z = **+2.94, p = 0.003**. Adding truncating
+mutations (protection mode) gives no sparing either (z = 0.91, p = 0.36). At the
+gene level, no gene is FDR-significantly spared pan-cancer; the top nominal hits
+are common fragile sites (MACROD2, WWOX, FHIT, PTPRD, LRP1B, IMMP2L) deleted at
+similar rates regardless of metastasis.
+
+**Conclusion.** Only lung adenocarcinoma shows 8p23 sparing, and only nominally.
+Across cancers 8p23 is, if anything, *more* deleted in metastatic disease. The
+honest reading is that the lung 8p23 result was an **underpowered, non-replicating
+signal** — exactly the outcome the pan-cancer check is designed to catch. The
+negative-selection *method* is sound and worth applying, but 8p23 is not a
+general metastasis-required locus.
+
+### A caveat on the metastasis label (data access)
+
+This all defines "metastatic" as **pathologic M1 / stage IV**, which *undercounts*
+— it misses patients who develop distant metastasis over follow-up. The fuller
+annotation (clinical M stage, `new_neoplasm_event_type = Distant Metastasis`,
+metastatic sites) lives in the TCGA **BCR Biotab** clinical supplements on GDC
+(what `TCGAbiolinks::GDCdownload` fetches). In this environment GDC, the Broad
+Firehose mirror, and cBioPortal's legacy clinical-M field are all unavailable /
+empty, so cBioPortal's pathologic M is the ceiling. Supplying the Biotab clinical
+(or enabling GDC egress) would enlarge the metastatic set — but note the
+pan-cancer cohorts above (BLCA/COADREAD/KIRC) already carry enough true M1
+patients that the non-replication conclusion is not a power artifact.
