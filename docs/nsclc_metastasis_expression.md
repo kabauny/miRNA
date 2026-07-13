@@ -81,6 +81,16 @@ up-in-N+ genes are textbook cell cycle — `CCNA2`, `TK1`, `KPNA2`, `MAD2L1`,
 The 1,407 down-in-N+ genes carry no pathway enrichment (diffuse; likely
 stromal/immune dilution).
 
+**Present in both subtypes, stronger in LUAD (not LUAD-exclusive).** Running the
+screen per subtype at nearly matched sample sizes (`--studies luad` / `lusc`;
+LUAD 171 N+ vs 328 N0, LUSC 170 vs 306) shows the E2F/G2M program is significant
+in *both* — E2F targets q≈5.6e-28 (LUAD) and q≈5.1e-22 (LUSC), G2M q≈6.5e-19 and
+1.5e-10. But it is broader in LUAD (**1,461** differential genes vs **306** in
+LUSC; MYC/cell-cycle clear FDR only in LUAD). The likely reason is a ceiling
+effect: LUSC is intrinsically more proliferative at baseline, so N+ vs N0 has less
+dynamic range there. So the nodal proliferation signature is a shared NSCLC
+feature, LUAD-enriched — unlike the *distant-met* null, which held in both subtypes.
+
 ## Result 3 — …but that signal is really tumour stage, not nodal spread
 
 The catch: N0 tumours are ~78% stage I, while N+ tumours are stage II–III. So
