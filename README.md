@@ -36,7 +36,8 @@ src/mirna_tcga/      # the package
   endpoints.py       # metastasis endpoints (distant M1, nodal N+) from clinical
   biotab.py          # TCGA BCR Biotab clinical-supplement loader (richer distant-met label)
   enrich.py          # pathway over-representation (GMT + hypergeometric)
-  layers.py          # multi-omic loaders (expression, deletions, mutations)
+  layers.py          # multi-omic loaders (expression, CNA deletions/amplifications, mutations)
+  segments.py        # DNAcopy segment summaries: fraction-genome-altered + arm-level log2
   mirbase.py         # MIMAT accession -> hsa-miR name lookup (mature.fa)
   panels.py          # small demo gene panel
 scripts/             # runnable pipeline examples
@@ -58,6 +59,7 @@ scripts/             # runnable pipeline examples
   16_never_deleted_stage_iv.py      # strict "never deleted in stage IV" re-run on the 126-patient cohort
   17_metastasis_expression_diff.py  # differential expression: metastatic vs non-metastatic (incl. true-stage-I reference)
   18_metastasis_cnv_diff.py         # two-sided CNV diff (deletions + amplifications) across the same clean contrasts
+  19_metastasis_segment_cnv.py      # segment-level CNV: fraction-genome-altered + arm-level gains/losses vs metastasis
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)

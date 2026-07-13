@@ -251,6 +251,28 @@ class CBioPortalClient:
         )
         return pd.DataFrame(records)
 
+    def copy_number_segments(
+        self, study_id: str, sample_ids: list[str], chunk: int = 200
+    ) -> pd.DataFrame:
+        """Raw DNAcopy copy-number **segments** (continuous log2 ratios).
+
+        Unlike the discrete GISTIC calls (:meth:`discrete_cna_events`), segments
+        preserve segment length and continuous magnitude, enabling
+        fraction-genome-altered and arm-level analyses. Returns one row per
+        segment with ``sampleId`` / ``patientId``, ``chromosome`` (str, '1'..'23'),
+        ``start``, ``end``, ``numberOfProbes``, ``segmentMean`` (log2 copy ratio).
+        Fetched in chunks of ``chunk`` samples. cBioPortal PanCancer segments are
+        hg19.
+        """
+        frames = []
+        for i in range(0, len(sample_ids), chunk):
+            body = [{"sampleId": s, "studyId": study_id} for s in sample_ids[i:i + chunk]]
+            recs = self._post("copy-number-segments/fetch", json=body,
+                              params={"projection": "DETAILED"})
+            if recs:
+                frames.append(pd.DataFrame(recs))
+        return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
     def sample_list_ids(self, sample_list_id: str) -> list[str]:
         """Sample ids belonging to a named sample list."""
         rec = self.session.get(

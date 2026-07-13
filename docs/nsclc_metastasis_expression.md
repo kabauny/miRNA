@@ -8,7 +8,8 @@ Reproduce:
 
 ```bash
 python scripts/17_metastasis_expression_diff.py --save-dir results  # expression
-python scripts/18_metastasis_cnv_diff.py --save-dir results         # copy number
+python scripts/18_metastasis_cnv_diff.py --save-dir results         # copy number (gene-level GISTIC)
+python scripts/19_metastasis_segment_cnv.py --save-dir results      # copy number (segments: FGA + arm-level)
 ```
 
 ## Method
@@ -114,23 +115,57 @@ anywhere. The 8p23 "spared deletion" (scripts 14–16) reappears here at q≈0.0
 is a borderline minority effect, swamped by the opposite general "more deletions"
 trend.
 
+## Result 5 — segment-level copy number: the one arm-level exception (script 19)
+
+The gene-level GISTIC screen (Result 4) tests *focal* deep events and misses broad
+copy-number change. Script 19 uses the raw DNAcopy **segments** (continuous log2
+ratios, hg19) for two summaries a per-gene binary test cannot give: **fraction
+genome altered (FGA)** — one genomic-instability score per sample — and
+**arm-level** length-weighted mean log2 per chromosome arm (39 autosomal arms),
+each tested subtype-adjusted.
+
+| Contrast | FGA (instability) | arm-level (q<0.05) |
+|---|---|---|
+| distant met vs true stage I | 0.314 vs 0.323, p=0.33 (ns) | **0 arms** |
+| distant met vs all M0 | 0.314 vs 0.346, p=0.39 (ns) | **0 arms** |
+| nodal N+ vs N0 | 0.355 vs 0.328, **p=0.009** | 3 gained: **17q** (q=9e-4), 7q, 2p |
+| nodal N+ vs N0, stage II | 0.374 vs 0.351, p=0.17 (ns) | **17q only** (q=0.010) |
+
+Two things emerge. First, **distant-metastatic primaries are not more unstable**
+and carry no differential arm — FGA is flat (if anything lower) and 0 arms move,
+against either reference. Second, the nodal instability *burden* is again **tumour
+stage**: N+ tumours have higher FGA whole-cohort (p=0.009) but that collapses
+within stage II (p=0.17), and two of the three arm gains (7q, 2p) drop out.
+
+The exception is **17q gain**, the one copy-number feature associated with nodal
+status **independent of stage** — significant whole-cohort (q=9e-4) *and* within
+stage II (q=0.010, AUC≈0.62). It is a broad, gene-dense arm (contains `ERBB2` and
+the 17q proliferation/instability genes), so this is an arm-level association, not
+a single-driver call, and the effect is modest — but it is the only molecular
+feature in this whole analysis that separates metastatic from non-metastatic while
+holding stage constant.
+
 ## Conclusion
 
-Across expression and copy number, the same result:
+Across expression and copy number, the same result — with one small exception:
 
-- **Distant metastasis** — no bulk-primary signature in *either* omic, against a
-  heterogeneous M0 reference *or* a clean true-stage-I indolent control (expression
-  0 genes best q≈0.41; CNV 0 genes best q≈0.054).
-- **Nodal metastasis** — a large proliferation *expression* signature whole-cohort
-  that is **explained by tumour stage** (collapses within stage II); *no* CNV
-  signal at all.
+- **Distant metastasis** — no bulk-primary signature in *any* layer (expression,
+  gene-level CNV, or segment FGA / arm-level), against a heterogeneous M0 reference
+  *or* a clean true-stage-I indolent control. Distant-metastatic primaries are not
+  even more genomically unstable.
+- **Nodal metastasis** — a proliferation *expression* signature and higher CNV
+  instability (FGA) whole-cohort, both **explained by tumour stage** (they collapse
+  within stage II). The lone survivor is **17q gain**, associated with nodal status
+  even at matched stage (q≈0.01) — modest, arm-level, but the only stage-independent
+  molecular correlate found.
 
-Net: in TCGA NSCLC, **metastatic status leaves no clean molecular imprint on the
-bulk primary tumour beyond markers of tumour stage / aggressiveness** —
-proliferation (expression) and diffuse deletion burden (CNV), both stage-linked,
-neither a metastasis-specific program or locus. A genuine metastasis program, if
-one exists, would need single-cell / subclonal resolution or actual metastasis
-samples (MSK-MET / MET500). (This is the metastasis contrast; the *survival* screen
-in `nsclc_survival_screen.md` is EMT-dominated — what predicts death differs from
-what marks tumour stage.)
+Net: in TCGA NSCLC, **metastatic status leaves essentially no clean molecular
+imprint on the bulk primary tumour beyond markers of tumour stage / aggressiveness**
+— proliferation (expression) and instability/deletion burden (CNV), both
+stage-linked — the sole stage-independent hint being 17q gain in nodal disease.
+Nothing marks *distant* metastasis. A genuine metastasis program, if one exists,
+would need single-cell / subclonal resolution or actual metastasis samples
+(MSK-MET / MET500). (This is the metastasis contrast; the *survival* screen in
+`nsclc_survival_screen.md` is EMT-dominated — what predicts death differs from what
+marks tumour stage.)
 
