@@ -64,6 +64,7 @@ scripts/             # runnable pipeline examples
   21_ppm1d_p53_brake.py             # test PPM1D (WIP1, 17q) as a p53 brake, stratified by TP53 status
   22_metastasis_specific_genes.py   # metastasis-specific DE: adjust out proliferation, what survives?
   23_true_stage_i_lost_genes.py     # genes deleted in indolent "true stage I" but retained in progressed tumours
+  24_chr8p23_which_gene.py          # which 8p gene carries it? expression vs dosage+proliferation -> STC1/LOXL2 (needs [idmap])
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)

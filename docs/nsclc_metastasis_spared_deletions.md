@@ -244,3 +244,42 @@ Notably several block members (`SOX7`, `PINX1`) are usually called tumour
 suppressors, yet here their *deletion* tracks with *less* aggressive disease — so
 "8p23 as metastasis-permissive machinery" is a genuine, testable hypothesis for a
 metastasis-enriched cohort, not a settled mechanism.
+
+### Which 8p gene? Expression narrows it to STC1 (script 24)
+
+The block deletes as a **whole 8p arm** (≈190 co-deleted genes, identical q), so
+deletion alone cannot name the gene. `scripts/24_chr8p23_which_gene.py` breaks the
+tie with expression, testing each co-deleted gene against two confounders:
+**dosage** (does its expression still track progression in tumours where it is
+*not* deleted?) and **proliferation** (subtype × proliferation-tertile strata, as
+progressed tumours proliferate more).
+
+Most 8p genes are *lower* in progressed tumours — 8p is tumour-suppressor-rich
+(`DLC1`, `CSMD1`, `CLU`, `DUSP4`, `LZTS1`, `PDGFRL`). But the deletion finding says
+8p **retention** tracks metastasis, so the relevant candidates are 8p genes that
+are **higher** in progressed and survive both confounders:
+
+| gene | z (subtype-adj) | z (dosage-indep) | z (prolif-adj) | cis-dosage | verdict |
+|---|---|---|---|---|---|
+| **STC1** | +3.31 (p=0.001) | +2.12 (p=0.034) | **+2.27 (p=0.023)** | yes (↓ on del) | **survives both** |
+| LOXL2 | +2.46 (p=0.014) | +1.41 (p=0.16) | +2.20 (p=0.028) | yes | prolif-indep, more dosage-driven |
+| CDCA2, PBK, ESCO2 | +2.2…+2.9 (sig) | — | ~0 (NS) | — | proliferation passengers |
+| SPAG11A | +3.21 (p=0.001) | +2.39 | +2.93 (p=0.003) | **none (flat)** | statistical only — no cis-dosage, epididymal gene → artifact |
+
+**STC1 (stanniocalcin-1, 8p21.2)** is the cleanest nomination: up in progressed,
+survives dosage *and* proliferation adjustment, responds to its own copy number
+(cis-dosage), and has directly relevant biology — a secreted, hypoxia-induced
+factor promoting EMT/invasion and angiogenesis. **LOXL2** (8p21.3, ECM crosslinking,
+a textbook EMT/metastasis driver) is a strong second but is more dosage-dependent.
+The proliferation genes (`CDCA2`, `PBK`, `ESCO2`) that looked significant unadjusted
+**vanish** once proliferation is held constant — they were passengers. `SPAG11A`
+passes the statistics but has no cis-dosage response and no plausible function, so
+it reads as a false positive, not a lead.
+
+**Honest limits.** These candidates sit on 8p21, while the deletion *peak* is 8p23.1
+(`XKR6/SOX7/PINX1`) — whole-arm loss removes both, so expression, not deletion,
+does the pointing. "Higher in progressed" is an association: STC1 and LOXL2 are both
+hypoxia-linked, so their elevation may partly reflect a more hypoxic tumour
+micro-environment in aggressive disease rather than a cell-intrinsic cause.
+Net: **STC1 (with LOXL2) is the most defensible single-gene reading of the 8p
+retention signal** — a concrete, testable hypothesis for a metastasis-enriched cohort.
