@@ -66,6 +66,7 @@ scripts/             # runnable pipeline examples
   23_true_stage_i_lost_genes.py     # genes deleted in indolent "true stage I" but retained in progressed tumours
   24_chr8p23_which_gene.py          # which 8p gene carries it? expression vs dosage+proliferation -> STC1/LOXL2 (needs [idmap])
   25_stc1_survival_check.py         # sanity check: does high STC1 predict worse OS? (proliferation-adjusted Cox score test)
+  26_stc1_km_curve.py               # Kaplan-Meier figure: STC1-high vs -low OS (KM + log-rank, no lifelines)
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)
