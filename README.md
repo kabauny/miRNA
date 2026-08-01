@@ -134,6 +134,13 @@ survival + pathways) and
 (differential expression metastatic vs non-metastatic: proliferation tracks
 stage, and distant metastasis has no bulk-primary signature).
 
+The 8p / STC1 metastasis lead is consolidated as a short paper —
+[`docs/stc1_metastasis_paper.md`](docs/stc1_metastasis_paper.md) (rendered:
+[`stc1_metastasis_paper.pdf`](docs/stc1_metastasis_paper.pdf), with the
+Kaplan–Meier figure). Data provenance, retrieval, analysis methods, and
+governance are documented in
+[`docs/data_provenance_governance.md`](docs/data_provenance_governance.md).
+
 Or from Python:
 
 ```python
