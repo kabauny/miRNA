@@ -283,3 +283,34 @@ hypoxia-linked, so their elevation may partly reflect a more hypoxic tumour
 micro-environment in aggressive disease rather than a cell-intrinsic cause.
 Net: **STC1 (with LOXL2) is the most defensible single-gene reading of the 8p
 retention signal** — a concrete, testable hypothesis for a metastasis-enriched cohort.
+
+### Sanity check: high STC1 predicts worse survival (script 25)
+
+An independent consistency test for the STC1 nomination: if STC1 is
+metastasis-permissive (not just a proliferation proxy), high STC1 should predict
+**worse overall survival** and survive proliferation adjustment.
+`scripts/25_stc1_survival_check.py` runs the validated vectorized Cox score test
+(no lifelines) — z > 0 means higher expression → worse OS — subtype-stratified and
+then subtype × proliferation-tertile stratified, with MKI67 as a proliferation
+positive control.
+
+| gene | subtype-adj z (p) | proliferation-adj z (p) | |
+|---|---|---|---|
+| **STC1** | +2.56 (0.011) | **+2.27 (0.023)** | survives ✓ |
+| LOXL2 | +2.50 (0.012) | +1.80 (0.072) | borderline |
+| ANGPT2 | +1.64 (0.10) | +1.25 (0.21) | NS |
+| MKI67 (control) | +1.82 (0.069) | **+0.60 (0.55)** | vanishes ✗ |
+
+High **STC1 predicts worse OS (p=0.011) and the association survives proliferation
+adjustment (p=0.023)** — while the proliferation marker MKI67's OS signal
+**disappears** under the same adjustment. The control working as expected confirms
+STC1's prognostic value is not merely "proliferative tumours die faster."
+
+**STC1 now has three concordant lines of evidence**: (1) it sits on 8p, deleted in
+indolent true-stage-I tumours but retained in ones that progressed (script 23,
+q≈0.027); (2) its expression is higher in progressed tumours, surviving both
+dosage and proliferation adjustment (script 24); (3) high expression predicts
+worse survival, again proliferation-independent (this check). LOXL2 tracks as a
+weaker parallel; ANGPT2 fades. Still association, not causation — but a coherent,
+triangulated hypothesis (8p retention → STC1) worth testing in a metastasis-enriched
+cohort.
