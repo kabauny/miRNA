@@ -199,3 +199,48 @@ Both scripts auto-use it when a local Biotab folder is present (`config
 biotab.root`, or `--biotab-root`), and fall back to pathologic M1 otherwise. This
 is the single change that let the lung 8p23 signal firm up (q 0.22 → 0.052) and
 that dissolved the spurious pan-cancer "reversal."
+
+## A cleaner reference: genes lost in "true stage I" (script 23)
+
+The screens above use "all M0" (or all non-metastatic) as the reference — but that
+group secretly contains tumours that *later* metastasized, diluting the contrast.
+A sharper negative control is a **"true stage I"** tumour: stage I at diagnosis,
+N0/M0, and confirmed indolent (no distant *or* locoregional recurrence for ≥ 2
+years). Such a tumour demonstrably *never* acquired the ability to spread, so if
+metastasis needs some machinery, indolent tumours may have **lost** it. The
+question flips to: which genes are **deletable in true stage I yet retained in
+tumours that progressed** — i.e. lost in the indolent group?
+
+`scripts/23_true_stage_i_lost_genes.py` runs the CMH negative-selection test with
+the true-stage-I group (NSCLC n = 218) as reference against two progression-capable
+indices. This is the **strongest form of the 8p23 signal in the whole analysis**:
+
+| Contrast | 8p23 del in true stage I | 8p23 del in progressed | MH OR | q |
+|---|---|---|---|---|
+| distant-met vs true-stage-I (124 vs 208) | **9.1 %** | 0.8 % (1/124) | 0.07 | **0.027** |
+| N+ vs true-stage-I (343 vs 208) | 9.1 % | 3.5 % | 0.36 | 0.085 |
+
+The same co-deleted block (`XKR6`, `SOX7`, `PINX1`, `C8orf74`, `MSRA`, `RP1L1`,
+`PRSS55`, defensins) tops both. Read plainly: **indolent tumours delete 8p23 ~9 %
+of the time; tumours that went on to metastasize almost never do (0.8 %)** — the
+clean true-stage-I reference sharpens the distant-met signal to **q ≈ 0.027**, the
+first time the block crosses q < 0.05 at the gene level with a real (not 0/33)
+contrast.
+
+**Cross-subtype, powered by pooling.** Per subtype the same block appears in the
+relevant contrast — LUAD distant-met (9.8 % → 1.1 %, q ≈ 0.086) and LUSC nodal
+(11.3 % → 5.2 %, q ≈ 0.20) — same direction, modest per-subtype power; the
+subtype-adjusted pool is what reaches q ≈ 0.027. (Underpowered LUSC distant-met,
+n = 34, instead nominally flags a 9p21 interferon cluster, `IFNA1/6/8`, deleted in
+indolent LUSC only — an intriguing but non-significant lead.)
+
+**Honest reading.** This *supports* the hypothesis that metastatic capability is
+associated with **retaining 8p23**, and it is the cleanest positive result of the
+metastasis hunt. Caveats stand: it is one co-deleted locus (~13 genes moving
+together), not a broad program; it is association, not causation (8p23 deletion may
+simply mark an indolent molecular subtype); and pathway-burden tests find nothing
+FDR-significant (nominal: base-excision repair, adherens junction, WNT/β-catenin).
+Notably several block members (`SOX7`, `PINX1`) are usually called tumour
+suppressors, yet here their *deletion* tracks with *less* aggressive disease — so
+"8p23 as metastasis-permissive machinery" is a genuine, testable hypothesis for a
+metastasis-enriched cohort, not a settled mechanism.
