@@ -41,3 +41,21 @@ CHR8P23_BLOCK = [
     "MFHAS1", "CLN8", "KBTBD11", "MYOM2", "TDRP", "ZNF596", "ERICH1", "MTMR9",
     "PPP1R3B", "BLK", "CSMD1",
 ]
+
+# High-confidence **direct p53 transcriptional targets** (activated by wild-type
+# p53), used to read out p53-pathway activity from expression. If PPM1D (WIP1,
+# 17q23) amplification suppresses p53 -- the candidate driver of the LUSC 17q gain
+# -- these should be *lower* in PPM1D-high, TP53-wild-type tumours.
+# NOTE: two canonical p53 targets sit on 17q and would be inflated by the LUSC 17q
+# arm-dosage effect regardless of p53 activity -- FDXR (17q25) and TP53I3 partners
+# -- so FDXR is kept OUT of the signature and reported separately as a dosage
+# positive control. None of the genes below are on chr17.
+P53_TARGETS = [
+    "CDKN1A", "MDM2", "GADD45A", "BAX", "BBC3", "PMAIP1", "SESN1", "SESN2",
+    "RRM2B", "FAS", "TNFRSF10B", "ZMAT3", "BTG2", "DDB2", "XPC", "POLH",
+    "GDF15", "CCNG1", "TIGAR", "TRIAP1", "AEN", "RPS27L", "PLK3", "DRAM1",
+]
+
+# p53 targets that lie on chr17q (confounded by the LUSC 17q dosage gain) --
+# excluded from P53_TARGETS, reported separately as dosage positive controls.
+P53_TARGETS_ON_17Q = ["FDXR"]

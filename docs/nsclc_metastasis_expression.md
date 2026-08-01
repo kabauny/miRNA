@@ -211,6 +211,41 @@ gain is **functional as a coordinated cis-dosage effect** but pins down what it 
   targets are chromatin/p53-pathway genes on the arm (`SMARCD2`, `SUZ12`, and
   `PPM1D` at 17q23, a recurrently amplified p53-suppressing oncogene).
 
+## PPM1D (WIP1) — a p53 brake on 17q? Tested, not supported (script 21)
+
+ERBB2 is a non-driver, so the more mechanistic candidate for the LUSC 17q gain was
+**PPM1D** (WIP1, 17q23.2), a phosphatase that inactivates p53. The prediction: if
+the gain matters *because* of PPM1D, then in **TP53-wild-type** tumours higher
+PPM1D should suppress the p53 transcriptional program, and the effect should
+**vanish** where TP53 is already mutated (`scripts/21_ppm1d_p53_brake.py`,
+stratified by TP53 status; chr17 p53 targets like FDXR excluded to avoid the
+dosage confound).
+
+The result is a clean **negative for the specific hypothesis**:
+
+- **The correlation is real and not proliferation.** In TP53-WT LUSC, PPM1D
+  expression is anti-correlated with the p53 arrest program: `CDKN1A`/p21
+  **r = −0.40, p = 2e-4**, with `PLK3`, `GADD45A`, `BAX`, `RPS27L`, `TNFRSF10B`
+  all r < −0.36 (p < 0.001). It is not a proliferation artifact — PPM1D vs `MKI67`
+  is r = +0.10 (NS), and the p21 correlation is unchanged after partialling out
+  MKI67 (−0.39).
+- **But it is not TP53-wild-type-specific.** The p21 suppression persists at the
+  same strength in TP53-**mutant** LUSC (r = −0.30; WT-vs-mut difference not
+  significant, Fisher p ≈ 0.36). Under the WIP1→p53 model the effect should
+  disappear when p53 is already mutated; its persistence means the relationship is
+  largely **p53-independent** (WIP1 has many non-p53 substrates — p38, CHK1/2,
+  ATM, γH2AX). LUAD shows no p21 effect at all (r = +0.02).
+- **Copy number does not nominate PPM1D either.** PPM1D is **arm-level gained**
+  (LUSC 43%, LUAD 48%) but almost never **focally amplified** (0.4% / 1.6%) — it
+  rides the 17q arm with ~550 other genes rather than being a focal-amplicon peak.
+
+**Verdict.** The LUSC 17q gain is a genuine arm-level cis-dosage effect, but
+neither ERBB2 (focal-amplification test) nor PPM1D (TP53-stratified p53-brake
+test) is supported as *the* functional driver. PPM1D is an interesting
+p53-independent correlate, not the p53 brake the amplicon hypothesis needed. The
+arm gain remains without a single pinned-down target — honestly, a dosage effect
+in search of a driver.
+
 ## Conclusion
 
 Across expression and copy number, the same result — with one small exception:
