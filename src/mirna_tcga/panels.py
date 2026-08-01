@@ -59,3 +59,16 @@ P53_TARGETS = [
 # p53 targets that lie on chr17q (confounded by the LUSC 17q dosage gain) --
 # excluded from P53_TARGETS, reported separately as dosage positive controls.
 P53_TARGETS_ON_17Q = ["FDXR"]
+
+# Canonical proliferation / cell-cycle meta-gene. Metastatic TCGA primaries are
+# simply more proliferative than non-metastatic ones, and that dominates every
+# metastasis contrast. Used to score proliferation per sample and adjust it out
+# (stratify by proliferation tertile) so genuinely *metastasis-specific* genes can
+# be separated from generic tumour aggression. Widely-used mitotic/S-phase markers
+# (kept off chr17 where possible; TK1 on 17q is intentionally excluded to avoid
+# entangling the LUSC 17q dosage effect with the proliferation score).
+PROLIFERATION_PANEL = [
+    "MKI67", "PCNA", "CCNB1", "CCNB2", "CCNA2", "CDK1", "BUB1", "BUB1B",
+    "CDC20", "AURKA", "AURKB", "TOP2A", "CENPA", "CENPF", "PLK1", "FOXM1",
+    "TYMS", "RRM2", "MCM2", "KIF11", "NUSAP1", "UBE2C", "ASPM", "TPX2", "PRC1",
+]

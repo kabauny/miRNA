@@ -61,6 +61,8 @@ scripts/             # runnable pipeline examples
   18_metastasis_cnv_diff.py         # two-sided CNV diff (deletions + amplifications) across the same clean contrasts
   19_metastasis_segment_cnv.py      # segment-level CNV: fraction-genome-altered + arm-level gains/losses vs metastasis
   20_arm_gene_drilldown.py          # drill an arm-level CNV hit (e.g. 17q) down to genes: cis-dosage? which genes? (needs [idmap])
+  21_ppm1d_p53_brake.py             # test PPM1D (WIP1, 17q) as a p53 brake, stratified by TP53 status
+  22_metastasis_specific_genes.py   # metastasis-specific DE: adjust out proliferation, what survives?
 tests/               # offline tests (synthetic data + mocked API)
 config.yaml          # studies, profiles, parameters
 legacy/              # original R scripts (reference only)

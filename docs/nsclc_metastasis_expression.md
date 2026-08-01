@@ -246,6 +246,38 @@ p53-independent correlate, not the p53 brake the amplicon hypothesis needed. The
 arm gain remains without a single pinned-down target — honestly, a dosage effect
 in search of a driver.
 
+## Are there metastasis-*specific* genes? Proliferation-adjusted (script 22)
+
+Every contrast above is dominated by **proliferation** — metastatic primaries are
+just more proliferative, which is tumour aggression, not metastasis machinery. To
+find genes that *specifically* mark metastasis, `scripts/22_metastasis_specific_genes.py`
+re-runs the DE stratified by **subtype × proliferation-tertile**
+(`panels.PROLIFERATION_PANEL`), asking what still differs *within tumours of
+matched proliferation*. The answer: **essentially nothing metastasis-specific.**
+
+- **Nodal N+ is ~90 % proliferation.** 2,186 unadjusted hits → **1,959 (90 %)
+  vanish** once proliferation is held constant. 233 survive, but they are **not a
+  metastasis program**: the up-survivors are residual proliferation that leaked
+  through the coarse tertile bins (`CCNA2`, `TK1`, `KPNA2`, mito-ribosomal genes),
+  and no pathway is enriched (best: MYC targets q ≈ 0.06 — still growth biology).
+- **The canonical EMT / invasion program is flat.** Of 28 textbook metastasis
+  effectors (`VIM`, `SNAI1/2`, `ZEB1/2`, `TWIST1`, `FN1`, `MMP1/2/9/14`, `LOX`,
+  `LOXL2`, `SPARC`, `VEGFA`, `CXCR4`, …), **0 pass FDR** and only `MET` is even
+  nominal (p = 0.005, and MET is a growth RTK). Most rank in the **bottom half** of
+  18,484 genes (`FN1` #17,531; `ZEB1` #17,845; `VIM` #7,774). They are simply not
+  differential between N+ and N0 primaries.
+- **Stage-matched nodal (stage II): 3 genes**, still proliferation-flavoured
+  (`BIRC5`, `TK1`, `EXO1`). **Distant met: 0 hits** adjusted or not; top residuals
+  q ≈ 0.99 (noise).
+
+**Conclusion.** In bulk TCGA NSCLC primaries there is **no clean,
+proliferation-independent metastasis gene signature**. Metastatic status is marked
+by proliferation (tumour aggression / stage); the textbook EMT/invasion genes are
+not differentially expressed between node-positive and node-negative primaries. A
+genuine metastasis-specific signature almost certainly needs **matched primary–
+metastasis tissue** (MET500 / MSK-MET with expression), not resected primaries —
+the same power ceiling noted throughout.
+
 ## Conclusion
 
 Across expression and copy number, the same result — with one small exception:
